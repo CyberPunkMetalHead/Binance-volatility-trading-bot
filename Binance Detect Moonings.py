@@ -259,7 +259,7 @@ def sell_coins():
     return coins_sold
 
 
-def update_porfolio(orders, last_price, volume):
+def update_portfolio(orders, last_price, volume):
     '''add every coin bought to our portfolio for tracking/selling later'''
 
     for coin in orders:
@@ -296,6 +296,6 @@ if __name__ == '__main__':
 
     for i in count():
         orders, last_price, volume = buy()
-        update_porfolio(orders, last_price, volume)
+        update_portfolio(orders, last_price, volume)
         coins_sold = sell_coins()
         remove_from_portfolio(coins_sold)
