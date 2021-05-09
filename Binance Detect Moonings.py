@@ -289,6 +289,11 @@ def remove_from_portfolio(coins_sold):
 
 if __name__ == '__main__':
     print('Press Ctrl-Q to stop the script')
+
+    if not TESTNET:
+        print('WARNING: You are using the Mainnet and live funds. As a safety measure, the script will start executing in 30 seconds.')
+        time.sleep(30)
+
     for i in count():
         orders, last_price, volume = buy()
         update_porfolio(orders, last_price, volume)
