@@ -79,7 +79,7 @@ TAKE_PROFIT = 6
 
 
 
-# coins that bought by the bot since its start
+# try to load all the coins bought by the bot if the file exists and is not empty
 coins_bought = {}
 
 # path to the saved coins_bought file
@@ -89,11 +89,10 @@ coins_bought_file_path = 'coins_bought.json'
 if TESTNET:
     coins_bought_file_path = 'testnet_' + coins_bought_file_path
 
-# if saved coins_bought json file exists then load it
-if os.path.isfile(coins_bought_file_path):
+# if saved coins_bought json file exists and it's not empty then load it
+if os.path.isfile(coins_bought_file_path) and os.stat(coins_bought_file_path).st_size!= 0:
     with open(coins_bought_file_path) as file:
-        coins_bought = json.load(file)
-
+            coins_bought = json.load(file)
 
 
 def get_price():
@@ -180,7 +179,7 @@ def convert_volume():
     return volume, last_price
 
 
-def trade():
+def buy():
     '''Place Buy market orders for each volatile coin found'''
 
     volume, last_price = convert_volume()
@@ -218,29 +217,14 @@ def trade():
     return orders, last_price, volume
 
 
-def update_porfolio(orders, last_price, volume):
-    '''add every coin bought to our portfolio for tracking/selling later'''
-
-    for coin in orders:
-        coins_bought[coin] = {
-            'symbol': orders[coin][0]['symbol'],
-            'orderid': orders[coin][0]['orderId'],
-            'timestamp': orders[coin][0]['time'],
-            'bought_at': last_price[coin]['price'],
-            'volume': volume[coin]
-            }
-
-        # save the coins in a json file in the same directory
-        with open(coins_bought_file_path, 'w') as file:
-            json.dump(coins_bought, file, indent=4)
-
-
 def sell_coins():
     '''sell coins that have reached the STOP LOSS or TAKE PROFIT thershold'''
 
     last_price = get_price()
+    #global coins_bought
+    coins_sold = {}
 
-    for coin in coins_bought:
+    for coin in list(coins_bought):
         # define stop loss and take profit
         TP = float(coins_bought[coin]['bought_at']) + (float(coins_bought[coin]['bought_at']) * TAKE_PROFIT) / 100
         SL = float(coins_bought[coin]['bought_at']) - (float(coins_bought[coin]['bought_at']) * STOP_LOSS) / 100
@@ -266,13 +250,39 @@ def sell_coins():
             except Exception as e:
                 print(e)
 
-            # run the else block if the position has been placed and update the coins bought json file
+            # run the else block if coin has been sold and create a dict for each coin sold
             else:
-                coins_bought[coin] = None
-                with open(coins_bought_file_path, 'w') as file:
-                    json.dump(coins_bought, file, indent=4)
+                coins_sold[coin] = coins_bought[coin]
         else:
             print(f'TP or SL not yet reached, not selling {coin} for now...')
+
+    return coins_sold
+
+
+def update_porfolio(orders, last_price, volume):
+    '''add every coin bought to our portfolio for tracking/selling later'''
+
+    for coin in orders:
+        coins_bought[coin] = {
+            'symbol': orders[coin][0]['symbol'],
+            'orderid': orders[coin][0]['orderId'],
+            'timestamp': orders[coin][0]['time'],
+            'bought_at': last_price[coin]['price'],
+            'volume': volume[coin]
+            }
+
+        # save the coins in a json file in the same directory
+        with open(coins_bought_file_path, 'w') as file:
+            json.dump(coins_bought, file, indent=4)
+
+
+def remove_from_portfolio(coins_sold):
+    '''Remove coins sold due to SL or TP from portofio'''
+    for coin in coins_sold:
+        coins_bought.pop(coin)
+
+    with open(coins_bought_file_path, 'w') as file:
+        json.dump(coins_bought, file, indent=4)
 
 
 
@@ -280,6 +290,7 @@ def sell_coins():
 if __name__ == '__main__':
     print('Press Ctrl-Q to stop the script')
     for i in count():
-        orders, last_price, volume = trade()
+        orders, last_price, volume = buy()
         update_porfolio(orders, last_price, volume)
-        sell_coins()
+        coins_sold = sell_coins()
+        remove_from_portfolio(coins_sold)
