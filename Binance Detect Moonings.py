@@ -128,7 +128,7 @@ def wait_for_price():
 
         # calculate the difference between the first and last price reads
         for coin in initial_price:
-            threshold_check = (float(initial_price[coin]['price']) - float(last_price[coin]['price'])) / float(last_price[coin]['price']) * 100
+            threshold_check = (float(last_price[coin]['price']) - float(initial_price[coin]['price'])) / float(last_price[coin]['price']) * 100
 
             # each coin with higher gains than our CHANGE_IN_PRICE is added to the volatile_coins dict
             if threshold_check > CHANGE_IN_PRICE:
