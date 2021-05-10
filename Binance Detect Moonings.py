@@ -129,8 +129,10 @@ def wait_for_price():
 
     if historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
         # sleep for exactly the amount of time required
-        time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds())
-
+        sleep_time = (timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds()
+        time.sleep(sleep_time)
+        print(f'Not enough time has passed yet, will wait {sleep_time} {"seconds" if sleep_time > 1 else "second"}...')
+        
     print(f'not enough time has passed yet...Session profit:{session_profit:.2f}%')
 
     # retreive latest prices
