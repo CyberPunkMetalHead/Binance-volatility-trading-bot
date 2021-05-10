@@ -120,7 +120,7 @@ def wait_for_price():
     initial_price = get_price()
 
     while initial_price['BNBUSDT']['time'] > datetime.now() - timedelta(minutes=TIME_DIFFERENCE):
-        print(f'not enough time has passed yet...')
+        print(f'Not enough time has passed yet, will wait {TIME_DIFFERENCE} {"minutes" if TIME_DIFFERENCE > 1 else "minute"}...')
 
         # let's wait here until the time passess...
         time.sleep(60*TIME_DIFFERENCE)
