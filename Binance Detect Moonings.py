@@ -49,6 +49,7 @@ else:
 # You may edit to adjust the parameters of the bot #
 ####################################################
 
+
 # select what to pair the coins to and pull all coins paied with PAIR_WITH
 PAIR_WITH = 'USDT'
 
@@ -71,6 +72,11 @@ STOP_LOSS = 3
 
 # define in % when to take profit on a profitable coin
 TAKE_PROFIT = 6
+
+# BINANCE cannot always sell all that it buys. Select in % how much to sell
+# Set to True to toggle SELL_AMOUNT
+CAPPED_SELL = False
+SELL_AMOUNT = 99.25
 
 
 ####################################################
@@ -255,9 +261,12 @@ def sell_coins():
             # try to create a real order if the test orders did not raise an exception
             try:
 
-                # only sell 99.25% of the lot to avoid LOT exceptions
-                #sell_amount = coins_bought[coin]['volume']*99.25/100
-                sell_amount = coins_bought[coin]['volume']
+                # decide whether to sell the whole lot or a CAPPED_SELL
+                if CAPPED_SELL:
+                    sell_amount = coins_bought[coin]['volume']*SELL_AMOUNT/100
+                else:
+                    sell_amount = coins_bought[coin]['volume']
+
                 decimals = len(str(coins_bought[coin]['volume']).split("."))
 
                 # convert to correct volume
