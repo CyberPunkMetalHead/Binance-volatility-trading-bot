@@ -52,7 +52,7 @@ else:
 PAIR_WITH = 'USDT'
 
 # Define the size of each trade, by default in USDT
-QUANTITY = 100
+QUANTITY = 13
 
 # List of pairs to exlcude
 # by default we're excluding the most popular fiat pairs
@@ -188,7 +188,7 @@ def buy():
     for coin in volume:
 
         # only buy if the there are no active trades on the coin
-        if coin not in coins_bought or coins_bought[coin] == None:
+        if coin not in coins_bought:
             print(f' preparing to buy {volume[coin]} {coin}')
 
             if TESTNET :
@@ -198,10 +198,10 @@ def buy():
             # try to create a real order if the test orders did not raise an exception
             try:
                 buy_limit = client.create_order(
-                    symbol=coin,
-                    side='BUY',
-                    type='MARKET',
-                    quantity=volume[coin]
+                    symbol = coin,
+                    side = 'BUY',
+                    type = 'MARKET',
+                    quantity = volume[coin]
                 )
 
             # error handling here in case position cannot be placed
@@ -211,6 +211,16 @@ def buy():
             # run the else block if the position has been placed and return order info
             else:
                 orders[coin] = client.get_all_orders(symbol=coin, limit=1)
+
+                # binance sometimes returns an empty list, the code will wait here unti binance returns the order
+                while orders[coin] == []:
+                    print('Binance is being slow in returning the order, calling the API again...')
+
+                    orders[coin] = client.get_all_orders(symbol=coin, limit=1)
+                    time.sleep(1)
+
+                else:
+                    print('Order returned, saving order to file')
         else:
             print(f'Signal detected, but there is already an active trade on {coin}')
 
@@ -221,7 +231,6 @@ def sell_coins():
     '''sell coins that have reached the STOP LOSS or TAKE PROFIT thershold'''
 
     last_price = get_price()
-    #global coins_bought
     coins_sold = {}
 
     for coin in list(coins_bought):
@@ -239,11 +248,20 @@ def sell_coins():
 
             # try to create a real order if the test orders did not raise an exception
             try:
+
+                # only sell 99.25% of the lot to avoid LOT exceptions
+                sell_amount = coins_bought[coin]['volume']*99.25/100
+                decimals = len(str(coins_bought[coin]['volume']).split("."))
+
+                # convert to correct volume
+                sell_amount = float('{:.{}f}'.format(sell_amount, decimals))
+
                 sell_coins_limit = client.create_order(
-                    symbol=coin,
-                    side='SELL',
-                    type='MARKET',
-                    quantity=coins_bought[coin]['volume']
+                    symbol = coin,
+                    side = 'SELL',
+                    type = 'MARKET',
+                    quantity = sell_amount  # coins_bought[coin]['volume']
+
                 )
 
             # error handling here in case position cannot be placed
@@ -261,8 +279,9 @@ def sell_coins():
 
 def update_porfolio(orders, last_price, volume):
     '''add every coin bought to our portfolio for tracking/selling later'''
-
+    print(orders)
     for coin in orders:
+
         coins_bought[coin] = {
             'symbol': orders[coin][0]['symbol'],
             'orderid': orders[coin][0]['orderId'],
@@ -275,6 +294,7 @@ def update_porfolio(orders, last_price, volume):
         with open(coins_bought_file_path, 'w') as file:
             json.dump(coins_bought, file, indent=4)
 
+        print(f'Order with id {orders[coin][0]["orderId"]} placed and saved to file')
 
 def remove_from_portfolio(coins_sold):
     '''Remove coins sold due to SL or TP from portofio'''
