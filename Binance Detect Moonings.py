@@ -43,6 +43,7 @@ else:
 
 
 
+
 ####################################################
 #                   USER INPUTS                    #
 # You may edit to adjust the parameters of the bot #
@@ -52,7 +53,7 @@ else:
 PAIR_WITH = 'USDT'
 
 # Define the size of each trade, by default in USDT
-QUANTITY = 13
+QUANTITY = 100
 
 # List of pairs to exlcude
 # by default we're excluding the most popular fiat pairs
@@ -70,6 +71,7 @@ STOP_LOSS = 3
 
 # define in % when to take profit on a profitable coin
 TAKE_PROFIT = 6
+
 
 ####################################################
 #                END OF USER INPUTS                #
@@ -174,7 +176,11 @@ def convert_volume():
             volume[coin] = float('{:.1f}'.format(volume[coin]))
 
         else:
-            volume[coin] = float('{:.{}f}'.format(volume[coin], lot_size[coin]))
+            # if lot size has 0 decimal points, make the volume an integer
+            if lot_size[coin] == 0:
+                volume[coin] = int(volume[coin])
+            else:
+                volume[coin] = float('{:.{}f}'.format(volume[coin], lot_size[coin]))
 
     return volume, last_price
 
@@ -250,7 +256,8 @@ def sell_coins():
             try:
 
                 # only sell 99.25% of the lot to avoid LOT exceptions
-                sell_amount = coins_bought[coin]['volume']*99.25/100
+                #sell_amount = coins_bought[coin]['volume']*99.25/100
+                sell_amount = coins_bought[coin]['volume']
                 decimals = len(str(coins_bought[coin]['volume']).split("."))
 
                 # convert to correct volume
