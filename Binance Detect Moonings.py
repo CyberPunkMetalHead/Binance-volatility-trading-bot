@@ -14,6 +14,9 @@ from itertools import count
 # used to store trades and sell assets
 import json
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Switch between testnet and mainnet
 # Setting this to False will use REAL funds, use at your own risk
