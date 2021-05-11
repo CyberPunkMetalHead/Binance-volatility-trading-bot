@@ -53,13 +53,13 @@ else:
 ####################################################
 
 
-# select what to pair the coins to and pull all coins paied with PAIR_WITH
+# select what to pair the coins to and pull all coins paired with PAIR_WITH
 PAIR_WITH = 'USDT'
 
 # Define the size of each trade, by default in USDT
 QUANTITY = 100
 
-# List of pairs to exlcude
+# List of pairs to exclude
 # by default we're excluding the most popular fiat pairs
 # and some margin keywords, as we're only working on the SPOT account
 FIATS = ['EURUSDT', 'GBPUSDT', 'JPYUSDT', 'USDUSDT', 'DOWN', 'UP']
@@ -260,7 +260,7 @@ def buy():
 
 
 def sell_coins():
-    '''sell coins that have reached the STOP LOSS or TAKE PROFIT thershold'''
+    '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
 
     last_price = get_price()
     coins_sold = {}
@@ -322,7 +322,7 @@ def update_portfolio(orders, last_price, volume):
         print(f'Order with id {orders[coin][0]["orderId"]} placed and saved to file')
 
 def remove_from_portfolio(coins_sold):
-    '''Remove coins sold due to SL or TP from portofio'''
+    '''Remove coins sold due to SL or TP from portfolio'''
     for coin in coins_sold:
         coins_bought.pop(coin)
 
