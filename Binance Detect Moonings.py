@@ -78,13 +78,16 @@ TAKE_PROFIT = 6
 CAPPED_SELL = False
 SELL_AMOUNT = 99.25
 
+#Use custom tickers.txt list for filtering pairs
+CUSTOM_LIST = True
 
 ####################################################
 #                END OF USER INPUTS                #
 #                  Edit with care                  #
 ####################################################
 
-
+# Load custom tickerlist from file tickers.txt into array tickers *BNB must be in list for script to run.
+tickers=[line.strip() for line in open('tickers.txt')]
 
 
 # try to load all the coins bought by the bot if the file exists and is not empty
@@ -110,10 +113,13 @@ def get_price():
     prices = client.get_all_tickers()
 
     for coin in prices:
-
-        # only Return USDT pairs and exlcude margin symbols like BTCDOWNUSDT
-        if PAIR_WITH in coin['symbol'] and all(item not in coin['symbol'] for item in FIATS):
-            initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
+       
+        if CUSTOM_LIST:
+            if PAIR_WITH in coin['symbol'] and any(item in coin['symbol'] for item in tickers) and all(item not in coin['symbol'] for item in FIATS):
+                initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
+        else:
+            if PAIR_WITH in coin['symbol'] and all(item not in coin['symbol'] for item in FIATS):
+                initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
 
     return initial_price
 
@@ -133,10 +139,20 @@ def wait_for_price():
 
     else:
         last_price = get_price()
-
+        infoChange = -100.00
+        infoCoin = 'none'
+        infoStart = 0.00
+        infoStop = 0.00
+        
         # calculate the difference between the first and last price reads
         for coin in initial_price:
             threshold_check = (float(last_price[coin]['price']) - float(initial_price[coin]['price'])) / float(initial_price[coin]['price']) * 100
+
+            if threshold_check > infoChange:
+                infoChange = threshold_check
+                infoCoin = coin
+                infoStart = initial_price[coin]['price']
+                infoStop = last_price[coin]['price']
 
             # each coin with higher gains than our CHANGE_IN_PRICE is added to the volatile_coins dict
             if threshold_check > CHANGE_IN_PRICE:
@@ -144,10 +160,10 @@ def wait_for_price():
                 volatile_coins[coin] = round(volatile_coins[coin], 3)
 
                 print(f'{coin} has gained {volatile_coins[coin]}% in the last {TIME_DIFFERENCE} minutes, calculating volume in {PAIR_WITH}')
-
+                
         if len(volatile_coins) < 1:
                 print(f'No coins moved more than {CHANGE_IN_PRICE}% in the last {TIME_DIFFERENCE} minute(s)')
-
+                print(f'Max movement {float(infoChange):.2f}% by {infoCoin} from {float(infoStart):.4f} to {float(infoStop):.4f}')
         return volatile_coins, len(volatile_coins), last_price
 
 
