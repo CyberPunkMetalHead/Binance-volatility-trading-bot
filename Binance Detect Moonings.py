@@ -74,7 +74,7 @@ STOP_LOSS = 3
 TAKE_PROFIT = 6
 
 # use custom tickers.txt list for filtering pairs
-CUSTOM_LIST = True
+CUSTOM_LIST = False
 
 
 ####################################################
