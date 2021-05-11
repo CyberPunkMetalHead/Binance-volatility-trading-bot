@@ -73,18 +73,17 @@ STOP_LOSS = 3
 # define in % when to take profit on a profitable coin
 TAKE_PROFIT = 6
 
-# BINANCE cannot always sell all that it buys. Select in % how much to sell
-# Set to True to toggle SELL_AMOUNT
-CAPPED_SELL = False
-SELL_AMOUNT = 99.25
-
-#Use custom tickers.txt list for filtering pairs
+# use custom tickers.txt list for filtering pairs
 CUSTOM_LIST = True
+
 
 ####################################################
 #                END OF USER INPUTS                #
 #                  Edit with care                  #
 ####################################################
+
+
+
 
 # Load custom tickerlist from file tickers.txt into array tickers *BNB must be in list for script to run.
 tickers=[line.strip() for line in open('tickers.txt')]
@@ -160,10 +159,12 @@ def wait_for_price():
                 volatile_coins[coin] = round(volatile_coins[coin], 3)
 
                 print(f'{coin} has gained {volatile_coins[coin]}% in the last {TIME_DIFFERENCE} minutes, calculating volume in {PAIR_WITH}')
-                
+         
+        # Print more info if there are no volatile coins this iteration
         if len(volatile_coins) < 1:
                 print(f'No coins moved more than {CHANGE_IN_PRICE}% in the last {TIME_DIFFERENCE} minute(s)')
                 print(f'Max movement {float(infoChange):.2f}% by {infoCoin} from {float(infoStart):.4f} to {float(infoStop):.4f}')
+                
         return volatile_coins, len(volatile_coins), last_price
 
 
@@ -277,22 +278,11 @@ def sell_coins():
             # try to create a real order if the test orders did not raise an exception
             try:
 
-                # decide whether to sell the whole lot or a CAPPED_SELL
-                if CAPPED_SELL:
-                    sell_amount = coins_bought[coin]['volume']*SELL_AMOUNT/100
-                else:
-                    sell_amount = coins_bought[coin]['volume']
-
-                decimals = len(str(coins_bought[coin]['volume']).split("."))
-
-                # convert to correct volume
-                sell_amount = float('{:.{}f}'.format(sell_amount, decimals))
-
                 sell_coins_limit = client.create_order(
                     symbol = coin,
                     side = 'SELL',
                     type = 'MARKET',
-                    quantity = sell_amount  # coins_bought[coin]['volume']
+                    quantity = coins_bought[coin]['volume']
 
                 )
 
