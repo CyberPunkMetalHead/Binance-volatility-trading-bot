@@ -147,6 +147,9 @@ def wait_for_price():
 
         if len(volatile_coins) < 1:
                 print(f'No coins moved more than {CHANGE_IN_PRICE}% in the last {TIME_DIFFERENCE} minute(s)')
+        else:
+            marklist = sorted(volatile_coins.items(), key=lambda x:x[1], reverse=True)
+            volatile_coins = dict(marklist)
 
         return volatile_coins, len(volatile_coins), last_price
 
