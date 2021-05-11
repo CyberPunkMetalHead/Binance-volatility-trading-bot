@@ -61,7 +61,7 @@ QUANTITY = 100
 # and some margin keywords, as we're only working on the SPOT account
 FIATS = ['EURUSDT', 'GBPUSDT', 'JPYUSDT', 'USDUSDT', 'DOWN', 'UP']
 
-# the amount of time in MINUTES to calculate the differnce from the current price
+# the amount of time in MINUTES to calculate the difference from the current price
 TIME_DIFFERENCE = 5
 
 # the difference in % between the first and second checks for the price, by default set at 10 minutes apart.
