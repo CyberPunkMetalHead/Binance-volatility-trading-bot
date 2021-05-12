@@ -14,12 +14,14 @@ from itertools import count
 # used to store trades and sell assets
 import json
 
+# used for argument parsing. Rather than hardcoded values
+import argparse
 
-# Switch between testnet and mainnet
-# Setting this to False will use REAL funds, use at your own risk
-# Define your API keys below in order for the toggle to work
-TESTNET = True
 
+ARG_ENV_HELP = '''
+setting this argument to 'prod' will use REAL currencies (USE AT YOUR OWN RISK)
+please use 'test' to run against the test network.
+'''
 
 # Get binance key and secret for TEST and MAINNET
 # The keys below are pulled from environment variables using os.getenv
@@ -29,19 +31,6 @@ api_secret_test = os.getenv('binance_secret_stalkbot_testnet')
 
 api_key_live = os.getenv('binance_api_stalkbot_live')
 api_secret_live = os.getenv('binance_secret_stalkbot_live')
-
-
-# Authenticate with the client
-if TESTNET:
-    client = Client(api_key_test, api_secret_test)
-
-    # The API URL needs to be manually changed in the library to work on the TESTNET
-    client.API_URL = 'https://testnet.binance.vision/api'
-
-else:
-    client = Client(api_key_live, api_secret_live)
-
-
 
 
 ####################################################
@@ -83,26 +72,16 @@ CUSTOM_LIST = False
 ####################################################
 
 
-
-
-# Load custom tickerlist from file tickers.txt into array tickers *BNB must be in list for script to run.
-tickers=[line.strip() for line in open('tickers.txt')]
-
-
-# try to load all the coins bought by the bot if the file exists and is not empty
-coins_bought = {}
-
-# path to the saved coins_bought file
-coins_bought_file_path = 'coins_bought.json'
-
-# use separate files for testnet and live
-if TESTNET:
-    coins_bought_file_path = 'testnet_' + coins_bought_file_path
-
-# if saved coins_bought json file exists and it's not empty then load it
-if os.path.isfile(coins_bought_file_path) and os.stat(coins_bought_file_path).st_size!= 0:
-    with open(coins_bought_file_path) as file:
-            coins_bought = json.load(file)
+def load_agruments():
+    '''Loads required args, and returns parse_args()'''
+    my_parser = argparse.ArgumentParser()
+    my_parser.add_argument(
+        '--env',
+        '-e',
+        choices=['prod', 'test'],
+        required=True,
+        help=ARG_ENV_HELP)
+    return my_parser.parse_args()
 
 
 def get_price():
@@ -112,7 +91,7 @@ def get_price():
     prices = client.get_all_tickers()
 
     for coin in prices:
-       
+
         if CUSTOM_LIST:
             if PAIR_WITH in coin['symbol'] and any(item in coin['symbol'] for item in tickers) and all(item not in coin['symbol'] for item in FIATS):
                 initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
@@ -142,7 +121,7 @@ def wait_for_price():
         infoCoin = 'none'
         infoStart = 0.00
         infoStop = 0.00
-        
+
         # calculate the difference between the first and last price reads
         for coin in initial_price:
             threshold_check = (float(last_price[coin]['price']) - float(initial_price[coin]['price'])) / float(initial_price[coin]['price']) * 100
@@ -159,12 +138,12 @@ def wait_for_price():
                 volatile_coins[coin] = round(volatile_coins[coin], 3)
 
                 print(f'{coin} has gained {volatile_coins[coin]}% in the last {TIME_DIFFERENCE} minutes, calculating volume in {PAIR_WITH}')
-         
+
         # Print more info if there are no volatile coins this iteration
         if len(volatile_coins) < 1:
                 print(f'No coins moved more than {CHANGE_IN_PRICE}% in the last {TIME_DIFFERENCE} minute(s)')
                 print(f'Max movement {float(infoChange):.2f}% by {infoCoin} from {float(infoStart):.4f} to {float(infoStop):.4f}')
-                
+
         return volatile_coins, len(volatile_coins), last_price
 
 
@@ -318,6 +297,7 @@ def update_porfolio(orders, last_price, volume):
 
         print(f'Order with id {orders[coin][0]["orderId"]} placed and saved to file')
 
+
 def remove_from_portfolio(coins_sold):
     '''Remove coins sold due to SL or TP from portofio'''
     for coin in coins_sold:
@@ -328,8 +308,44 @@ def remove_from_portfolio(coins_sold):
 
 
 
-
 if __name__ == '__main__':
+    print('Press Ctrl-Q to stop the script')
+
+    args = load_agruments()
+    # Set global dependant on the environment requested
+    environment = args.env.lower()
+    if environment == "prod":
+        TESTNET = False
+    else:
+        TESTNET = True
+
+    # Load custom tickerlist from file tickers.txt into array tickers *BNB must be in list for script to run.
+    tickers=[line.strip() for line in open('tickers.txt')]
+
+
+    # try to load all the coins bought by the bot if the file exists and is not empty
+    coins_bought = {}
+
+    # path to the saved coins_bought file
+    coins_bought_file_path = 'coins_bought.json'
+
+    # Authenticate with the client
+    if TESTNET:
+        coins_bought_file_path = 'testnet_' + coins_bought_file_path # seperate files
+        client = Client(api_key_test, api_secret_test)
+        # The API URL needs to be manually changed in the library to work on the TESTNET
+        client.API_URL = 'https://testnet.binance.vision/api'
+
+    else:
+        client = Client(api_key_live, api_secret_live)
+
+
+    # if saved coins_bought json file exists and it's not empty then load it
+    if os.path.isfile(coins_bought_file_path) and os.stat(coins_bought_file_path).st_size!= 0:
+        with open(coins_bought_file_path) as file:
+                coins_bought = json.load(file)
+
+
     print('Press Ctrl-Q to stop the script')
 
     if not TESTNET:
