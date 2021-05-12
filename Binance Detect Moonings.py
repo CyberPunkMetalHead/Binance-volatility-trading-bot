@@ -76,6 +76,9 @@ TAKE_PROFIT = 6
 # use custom tickers.txt list for filtering pairs
 CUSTOM_LIST = False
 
+#Use log file for trades
+LOG_TRADES = True
+LOG_FILE = 'trades.txt'
 
 ####################################################
 #                END OF USER INPUTS                #
@@ -86,7 +89,7 @@ CUSTOM_LIST = False
 
 
 # Load custom tickerlist from file tickers.txt into array tickers *BNB must be in list for script to run.
-tickers=[line.strip() for line in open('tickers.txt')]
+if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
 
 
 # try to load all the coins bought by the bot if the file exists and is not empty
@@ -250,6 +253,9 @@ def buy():
 
                 else:
                     print('Order returned, saving order to file')
+                     # Log trade
+                    if LOG_TRADES:
+                        write_log(f"Buy: {volume[coin]} {coin} - {last_price[coin]}")
         else:
             print(f'Signal detected, but there is already an active trade on {coin}')
 
@@ -293,6 +299,9 @@ def sell_coins():
             # run the else block if coin has been sold and create a dict for each coin sold
             else:
                 coins_sold[coin] = coins_bought[coin]
+                # Log trade
+                if LOG_TRADES:
+                    write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange:.2f}%")
         else:
             print(f'TP or SL not yet reached, not selling {coin} for now...')
 
@@ -326,7 +335,9 @@ def remove_from_portfolio(coins_sold):
     with open(coins_bought_file_path, 'w') as file:
         json.dump(coins_bought, file, indent=4)
 
-
+def write_log(logline):
+   with open(LOG_FILE,'a+') as f:
+        f.write(logline + '\n')
 
 
 if __name__ == '__main__':
