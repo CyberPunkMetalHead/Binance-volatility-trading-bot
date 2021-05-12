@@ -345,9 +345,6 @@ if __name__ == '__main__':
         with open(coins_bought_file_path) as file:
                 coins_bought = json.load(file)
 
-
-    print('Press Ctrl-Q to stop the script')
-
     if not TESTNET:
         print('WARNING: You are using the Mainnet and live funds. As a safety measure, the script will start executing in 30 seconds.')
         time.sleep(30)
