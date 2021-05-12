@@ -1,3 +1,5 @@
 .env*
 *_coins_bought.json
 !.env.example
+keys.env
+.vscode/launch.json

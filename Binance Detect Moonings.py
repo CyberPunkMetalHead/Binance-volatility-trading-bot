@@ -65,10 +65,10 @@ QUANTITY = 100
 FIATS = ['EURUSDT', 'GBPUSDT', 'JPYUSDT', 'USDUSDT', 'DOWN', 'UP']
 
 # the amount of time in MINUTES to calculate the difference from the current price
-TIME_DIFFERENCE = 5
+TIME_DIFFERENCE = 0.2
 
 # the difference in % between the first and second checks for the price, by default set at 10 minutes apart.
-CHANGE_IN_PRICE = 3
+CHANGE_IN_PRICE = 0.3
 
 # define in % when to sell a coin that's not making a profit
 STOP_LOSS = 3
@@ -122,6 +122,8 @@ def get_price():
         else:
             if PAIR_WITH in coin['symbol'] and all(item not in coin['symbol'] for item in FIATS):
                 initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
+
+    #print(f'Received {len(prices)} tickers.')
 
     return initial_price
 
