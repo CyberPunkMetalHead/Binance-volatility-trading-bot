@@ -76,6 +76,9 @@ TAKE_PROFIT = 6
 # use custom tickers.txt list for filtering pairs
 CUSTOM_LIST = False
 
+#Use log file for trades
+LOG_TRADES = True
+LOG_FILE = 'trades.txt'
 
 ####################################################
 #                END OF USER INPUTS                #
@@ -86,7 +89,7 @@ CUSTOM_LIST = False
 
 
 # Load custom tickerlist from file tickers.txt into array tickers *BNB must be in list for script to run.
-tickers=[line.strip() for line in open('tickers.txt')]
+if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
 
 
 # try to load all the coins bought by the bot if the file exists and is not empty
@@ -130,7 +133,7 @@ def wait_for_price():
     volatile_coins = {}
     initial_price = get_price()
 
-    while initial_price['BNBUSDT']['time'] > datetime.now() - timedelta(minutes=TIME_DIFFERENCE):
+    while initial_price['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(minutes=TIME_DIFFERENCE):
         print(f'not enough time has passed yet...')
 
         # let's wait here until the time passess...
@@ -250,6 +253,9 @@ def buy():
 
                 else:
                     print('Order returned, saving order to file')
+                     # Log trade
+                    if LOG_TRADES:
+                        write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
         else:
             print(f'Signal detected, but there is already an active trade on {coin}')
 
@@ -267,9 +273,13 @@ def sell_coins():
         TP = float(coins_bought[coin]['bought_at']) + (float(coins_bought[coin]['bought_at']) * TAKE_PROFIT) / 100
         SL = float(coins_bought[coin]['bought_at']) - (float(coins_bought[coin]['bought_at']) * STOP_LOSS) / 100
 
+        LastPrice = float(last_price[coin]['price'])
+        BuyPrice = float(coins_bought[coin]['bought_at'])
+        PriceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
+
         # check that the price is above the take profit or below the stop loss
         if float(last_price[coin]['price']) > TP or float(last_price[coin]['price']) < SL:
-            print(f"TP or SL reached, selling {coins_bought[coin]['volume']} {coin}...")
+            print(f"TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange:.2f}%")
 
             if TESTNET :
                 # create test order before pushing an actual order
@@ -293,8 +303,11 @@ def sell_coins():
             # run the else block if coin has been sold and create a dict for each coin sold
             else:
                 coins_sold[coin] = coins_bought[coin]
+                # Log trade
+                if LOG_TRADES:
+                    write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange:.2f}%")
         else:
-            print(f'TP or SL not yet reached, not selling {coin} for now...')
+            print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {PriceChange:.2f}% ')
 
     return coins_sold
 
@@ -326,7 +339,10 @@ def remove_from_portfolio(coins_sold):
     with open(coins_bought_file_path, 'w') as file:
         json.dump(coins_bought, file, indent=4)
 
-
+def write_log(logline):
+    timestamp = datetime.now().strftime("%d/%m %H:%M:%S")
+    with open(LOG_FILE,'a+') as f:
+        f.write(timestamp + ' ' + logline + '\n')
 
 
 if __name__ == '__main__':
