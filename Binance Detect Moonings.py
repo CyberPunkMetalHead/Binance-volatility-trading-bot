@@ -135,7 +135,7 @@ def wait_for_price():
     volatile_coins = {}
     initial_price = get_price()
 
-    while initial_price['BNBUSDT']['time'] > datetime.now() - timedelta(minutes=TIME_DIFFERENCE):
+    while initial_price['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(minutes=TIME_DIFFERENCE):
         print(f'Not enough time has passed yet, will wait {TIME_DIFFERENCE} {"minutes" if TIME_DIFFERENCE > 1 else "minute"}...')
 
         # let's wait here until the time passess...
