@@ -24,8 +24,10 @@ TESTNET = True
 # Get binance key and secret for TEST and MAINNET
 # The keys below are pulled from environment variables using os.getenv
 # Simply remove this and use the following format instead: api_key_test = 'YOUR_API_KEY'
-api_key_test = os.getenv('binance_api_stalkbot_testnet')
-api_secret_test = os.getenv('binance_secret_stalkbot_testnet')
+api_key_test = 'abff4REVFtxpQSp9k0SCrKchT1qk7nrGisFNbZyo1eD5Td6oMw40aHeEr5uBb3et'
+api_secret_test = 'fiTU84rNtofWYjO3Tqa4K4HG9xVqWseMfHRO5tptJuud8HRtEL5zWs60oJM1EEUM'
+# api_key_test = os.getenv('binance_api_stalkbot_testnet')
+# api_secret_test = os.getenv('binance_secret_stalkbot_testnet')
 
 api_key_live = os.getenv('binance_api_stalkbot_live')
 api_secret_live = os.getenv('binance_secret_stalkbot_live')
@@ -62,7 +64,7 @@ QUANTITY = 100
 FIATS = ['EURUSDT', 'GBPUSDT', 'JPYUSDT', 'USDUSDT', 'DOWN', 'UP']
 
 # the amount of time in MINUTES to calculate the differnce from the current price
-TIME_DIFFERENCE = 5
+TIME_DIFFERENCE = 1/60
 
 # the difference in % between the first and second checks for the price, by default set at 10 minutes apart.
 CHANGE_IN_PRICE = 3
