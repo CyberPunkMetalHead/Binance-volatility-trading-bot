@@ -42,16 +42,6 @@ class txcolors:
     DEFAULT = '\033[39m'
 
 
-
-def parse_settings(SETTINGS_FILE):
-    try:
-
-        with open(SETTINGS_FILE) as file:
-            return yaml.load(file, Loader=yaml.FullLoader)
-    except Exception as e:
-        return "Error loading file."
-
-
 def get_price():
     '''Return the current price for all coins on binance'''
 
