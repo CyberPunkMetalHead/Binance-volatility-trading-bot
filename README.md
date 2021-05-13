@@ -15,7 +15,7 @@ The bot will listen to changes in price accross all coins on Binance. By default
 - The bot works with both Main and Testnet
 
 
-You can follow the [following guide](https://www.cryptomaton.org/2021/05/08/how-to-code-a-binance-trading-bot-that-detects-the-most-volatile-coins-on-binance/) for a step-by-step walkthrough
+You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/2021/05/08/how-to-code-a-binance-trading-bot-that-detects-the-most-volatile-coins-on-binance/) for a step-by-step walkthrough
 
 ## READ BEFORE USE
 1. If you use the mainnet, you will be using REAL money.
