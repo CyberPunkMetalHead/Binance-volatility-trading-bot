@@ -21,7 +21,7 @@ import json
 # Switch between testnet and mainnet
 # Setting this to False will use REAL funds, use at your own risk
 # Define your API keys below in order for the toggle to work
-TESTNET = False
+TESTNET = True
 
 
 # Get binance key and secret for TEST and MAINNET
