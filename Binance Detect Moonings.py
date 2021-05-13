@@ -172,6 +172,8 @@ def wait_for_price():
     '''calls the initial price and ensures the correct amount of time has passed
     before reading the current price again'''
 
+    global historical_prices, hsp_head
+
     volatile_coins = {}
 
     if historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
@@ -506,4 +508,3 @@ if __name__ == '__main__':
         update_portfolio(orders, last_price, volume)
         coins_sold = sell_coins()
         remove_from_portfolio(coins_sold)
-        
