@@ -55,30 +55,30 @@ else:
 PAIR_WITH = 'USDT'
 
 # Define the size of each trade, by default in USDT
-QUANTITY = 15
+QUANTITY = 100
 
-# Define max numbers of coins to hold
+# Define max numbers of coins to hold; amount of money in live account needs to be at least QUANTITY * MAX_COINS
 MAX_COINS = 10
 
-# List of pairs to exlcude
+# List of pairs to exclude
 # by default we're excluding the most popular fiat pairs
 # and some margin keywords, as we're only working on the SPOT account
 FIATS = ['EURUSDT', 'GBPUSDT', 'JPYUSDT', 'USDUSDT', 'DOWN', 'UP']
 
-# the amount of time in SECONDS to calculate the differnce from the current price
-TIME_DIFFERENCE = 30
+# the amount of time in MINUTES to calculate the difference from the current price
+TIME_DIFFERENCE = 5
 
-# Numer of times to check for TP/SL during each TIME_DIFFERENCE Minimum 1
-RECHECK_INTERVAL = 6
+# Number of times to check for TP/SL during each TIME_DIFFERENCE; minimum: 1, default: 60 (every 5s)
+RECHECK_INTERVAL = 60
 
-# the difference in % between the first and second checks for the price.
-CHANGE_IN_PRICE = 1.25
+# the (positive) difference in % within a TIME_DIFFERENCE period of time that will trigger a buy operation
+CHANGE_IN_PRICE = 3
 
 # define in % when to sell a coin that's not making a profit
-STOP_LOSS = 1.75
+STOP_LOSS = 2
 
 # define in % when to take profit on a profitable coin
-TAKE_PROFIT = 3
+TAKE_PROFIT = 4
 
 # Use custom tickers.txt list for filtering pairs
 CUSTOM_LIST = False
@@ -124,9 +124,14 @@ if os.path.isfile(coins_bought_file_path) and os.stat(coins_bought_file_path).st
     with open(coins_bought_file_path) as file:
             coins_bought = json.load(file)
 
+# rolling window of prices; cyclical queue
+historical_prices = [None] * (TIME_DIFFERENCE * RECHECK_INTERVAL)
+hsp_head = 0
 
-def get_price():
+def get_price(add_to_historical=True):
     '''Return the current price for all coins on binance'''
+
+    global historical_prices, hsp_head
 
     initial_price = {}
     prices = client.get_all_tickers()
@@ -140,6 +145,10 @@ def get_price():
             if PAIR_WITH in coin['symbol'] and all(item not in coin['symbol'] for item in FIATS):
                 initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
 
+    if add_to_historical:
+        historical_prices[hsp_head] = initial_price
+        hsp_head = (hsp_head + 1) % (TIME_DIFFERENCE * RECHECK_INTERVAL)
+
     return initial_price
 
 
@@ -148,54 +157,49 @@ def wait_for_price():
     before reading the current price again'''
 
     volatile_coins = {}
-    initial_price = get_price()
 
-    while initial_price['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(seconds=TIME_DIFFERENCE):
-        i=0
-        while i < RECHECK_INTERVAL:
-            print(f'checking TP/SL...')
-            coins_sold = sell_coins()
-            remove_from_portfolio(coins_sold)
-            time.sleep((TIME_DIFFERENCE/RECHECK_INTERVAL))
-            i += 1
-            # let's wait here until the time passess...
+    if historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
+        # sleep for exactly the amount of time required
+        time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds())
 
-        print(f'not enough time has passed yet...')
+    # retreive latest prices
+    get_price()
+    # infoChange = -100.00
+    # infoCoin = 'none'
+    # infoStart = 0.00
+    # infoStop = 0.00
 
-    else:
-        last_price = get_price()
-        infoChange = -100.00
-        infoCoin = 'none'
-        infoStart = 0.00
-        infoStop = 0.00
+    # calculate the difference in prices
+    for coin in historical_prices[hsp_head]:
+        # minimum and maximum prices over time period
+        min_price = min(historical_prices, key = lambda x: x[coin]['price'])
+        max_price = max(historical_prices, key = lambda x: x[coin]['price'])
 
-        # calculate the difference between the first and last price reads
-        for coin in initial_price:
-            threshold_check = (float(last_price[coin]['price']) - float(initial_price[coin]['price'])) / float(initial_price[coin]['price']) * 100
+        threshold_check = (-1.0 if min_price[coin]['time'] > max_price[coin]['time'] else 1.0) * (float(max_price[coin]['price']) - float(min_price[coin]['price'])) / float(min_price[coin]['price']) * 100
 
-            if threshold_check > infoChange:
-                infoChange = threshold_check
-                infoCoin = coin
-                infoStart = initial_price[coin]['price']
-                infoStop = last_price[coin]['price']
+        # if threshold_check > infoChange:
+        #     infoChange = threshold_check
+        #     infoCoin = coin
+        #     infoStart = initial_price[coin]['price']
+        #     infoStop = last_price[coin]['price']
 
-            # each coin with higher gains than our CHANGE_IN_PRICE is added to the volatile_coins dict if less than MAX_COINS is not reached.
-            if threshold_check > CHANGE_IN_PRICE:
-                if len(coins_bought) < MAX_COINS:
-                    volatile_coins[coin] = threshold_check
-                    volatile_coins[coin] = round(volatile_coins[coin], 3)
-                    print(f'{coin} has gained {volatile_coins[coin]}% in the last {TIME_DIFFERENCE} seconds, calculating volume in {PAIR_WITH}')
+        # each coin with higher gains than our CHANGE_IN_PRICE is added to the volatile_coins dict if less than MAX_COINS is not reached.
+        if threshold_check > CHANGE_IN_PRICE:
+            if len(coins_bought) < MAX_COINS:
+                volatile_coins[coin] = threshold_check
+                volatile_coins[coin] = round(volatile_coins[coin], 3)
+                print(f'{coin} has gained {volatile_coins[coin]}% in the last {TIME_DIFFERENCE} seconds, calculating volume in {PAIR_WITH}')
 
-                else:
-                    print(f'{txcolors.WARNING}{coin} has gained {threshold_check}% in the last {TIME_DIFFERENCE} seconds, but you are holding max number of coins{txcolors.DEFAULT}')
+            else:
+                print(f'{txcolors.WARNING}{coin} has gained {threshold_check}% within the last {TIME_DIFFERENCE} minutes, but you are holding max number of coins{txcolors.DEFAULT}')
 
-        # Print more info if there are no volatile coins this iteration
-        if infoChange < CHANGE_IN_PRICE:
-                print(f'No coins moved more than {CHANGE_IN_PRICE}% in the last {TIME_DIFFERENCE} second(s)')
+    # Print more info if there are no volatile coins this iteration
+    # if infoChange < CHANGE_IN_PRICE:
+    #     print(f'No coins moved more than {CHANGE_IN_PRICE}% in the last {TIME_DIFFERENCE} second(s)')
 
-        print(f'Max movement {float(infoChange):.2f}% by {infoCoin} from {float(infoStart):.4f} to {float(infoStop):.4f}')
+    # print(f'Max movement {float(infoChange):.2f}% by {infoCoin} from {float(infoStart):.4f} to {float(infoStop):.4f}')
 
-        return volatile_coins, len(volatile_coins), last_price
+    return volatile_coins, len(volatile_coins), historical_prices[hsp_head]
 
 
 def convert_volume():
@@ -295,7 +299,7 @@ def buy():
 def sell_coins():
     '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
 
-    last_price = get_price()
+    last_price = get_price(False) # don't populate rolling window
     coins_sold = {}
 
     for coin in list(coins_bought):
@@ -390,6 +394,10 @@ if __name__ == '__main__':
         print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
         time.sleep(30)
 
+    # seed initial prices
+    get_price()
     for i in count():
         orders, last_price, volume = buy()
         update_porfolio(orders, last_price, volume)
+        coins_sold = sell_coins()
+        remove_from_portfolio(coins_sold)
