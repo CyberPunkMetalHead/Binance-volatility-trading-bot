@@ -1,7 +1,7 @@
 # use for environment variables
 import os
 
-# Needed for colorful console output
+# Needed for colorful console output Install with: python3 -m pip install colorama (Mac/Linux) or pip install colorama (PC)
 from colorama import init
 init()
 
