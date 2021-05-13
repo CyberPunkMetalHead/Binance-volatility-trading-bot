@@ -55,7 +55,7 @@ else:
 PAIR_WITH = 'USDT'
 
 # Define the size of each trade, by default in USDT
-QUANTITY = 13
+QUANTITY = 15
 
 # List of pairs to exlcude
 # by default we're excluding the most popular fiat pairs
@@ -77,7 +77,7 @@ STOP_LOSS = 1.75
 TAKE_PROFIT = 3
 
 #Use custom tickers.txt list for filtering pairs
-CUSTOM_LIST = True
+CUSTOM_LIST = False
 
 #Use log file for trades
 LOG_TRADES = True
