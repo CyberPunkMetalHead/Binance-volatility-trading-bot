@@ -26,9 +26,20 @@ You can follow the [following guide](https://www.cryptomaton.org/2021/05/08/how-
 ## Usage
 
 1. Install Dependencies
-    ```sh
-    pip install -r requirements.txt
-    ```
+    - Easy mode (might clash with current depends)
+        ```sh
+        pip install -r requirements.txt
+        ```
+    - Prefered Method (venv)
+        ```sh
+        python3 -m venv .venv
+      
+        source .venv/bin/activate # linux
+        source .venv/scripts/activate # windows
+    
+        pip install -r requirements.txt
+        ```
+
 
 2. Set environment variables for API Keys
     - Linux
