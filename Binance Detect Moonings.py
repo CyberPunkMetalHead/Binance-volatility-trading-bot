@@ -51,7 +51,7 @@ else:
 ####################################################
 
 
-# select what to pair the coins to and pull all coins paied with PAIR_WITH
+# select what to pair the coins to and pull all coins paired with PAIR_WITH
 PAIR_WITH = 'USDT'
 
 # Define the size of each trade, by default in USDT
@@ -60,7 +60,7 @@ QUANTITY = 15
 # Define max numbers of coins to hold
 MAX_COINS = 10
 
-# List of pairs to exlcude
+# List of pairs to exclude
 # by default we're excluding the most popular fiat pairs
 # and some margin keywords, as we're only working on the SPOT account
 FIATS = ['EURUSDT', 'GBPUSDT', 'JPYUSDT', 'USDUSDT', 'DOWN', 'UP']
@@ -79,6 +79,14 @@ STOP_LOSS = 1.75
 
 # define in % when to take profit on a profitable coin
 TAKE_PROFIT = 3
+
+# whether to use trailing stop loss or not; default is True
+USE_TRAILING_STOP_LOSS = True
+
+# when hit TAKE_PROFIT, move STOP_LOSS to TRAILING_STOP_LOSS percentage points below TAKE_PROFIT hence locking in profit
+# when hit TAKE_PROFIT, move TAKE_PROFIT up by TRAILING_TAKE_PROFIT percentage points
+TRAILING_STOP_LOSS = 2
+TRAILING_TAKE_PROFIT = 2
 
 # Use custom tickers.txt list for filtering pairs
 CUSTOM_LIST = False
@@ -271,7 +279,7 @@ def buy():
             else:
                 orders[coin] = client.get_all_orders(symbol=coin, limit=1)
 
-                # binance sometimes returns an empty list, the code will wait here unti binance returns the order
+                # binance sometimes returns an empty list, the code will wait here until binance returns the order
                 while orders[coin] == []:
                     print('Binance is being slow in returning the order, calling the API again...')
 
@@ -300,17 +308,26 @@ def sell_coins():
 
     for coin in list(coins_bought):
         # define stop loss and take profit
-        TP = float(coins_bought[coin]['bought_at']) + (float(coins_bought[coin]['bought_at']) * TAKE_PROFIT) / 100
-        SL = float(coins_bought[coin]['bought_at']) - (float(coins_bought[coin]['bought_at']) * STOP_LOSS) / 100
+        TP = float(coins_bought[coin]['bought_at']) + (float(coins_bought[coin]['bought_at']) * coins_bought[coin]['take_profit']) / 100
+        SL = float(coins_bought[coin]['bought_at']) + (float(coins_bought[coin]['bought_at']) * coins_bought[coin]['stop_loss']) / 100
 
 
         LastPrice = float(last_price[coin]['price'])
         BuyPrice = float(coins_bought[coin]['bought_at'])
         PriceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
 
-        # check that the price is above the take profit or below the stop loss
-        if float(last_price[coin]['price']) > TP or float(last_price[coin]['price']) < SL:
+        # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
+        if float(last_price[coin]['price']) > TP and USE_TRAILING_STOP_LOSS:
+            print("TP reached, adjusting TP and SL accordingly to lock-in profit")
+            
+            # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
+            coins_bought[coin]['take_profit'] += TRAILING_TAKE_PROFIT
+            coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
 
+            continue
+
+        # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case 
+        if float(last_price[coin]['price']) < SL or (float(last_price[coin]['price']) > TP and not USE_TRAILING_STOP_LOSS):
             print(f"{txcolors.SELL}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange:.2f}%{txcolors.DEFAULT}")
 
             if TESTNET :
@@ -340,14 +357,15 @@ def sell_coins():
                 if LOG_TRADES:
                     profit = (LastPrice - BuyPrice) * coins_sold[coin]['volume']
                     write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%")
+            continue
 
-        else:
-            print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {PriceChange:.2f}% ')
+        # no action
+        print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {PriceChange:.2f}% ')
 
     return coins_sold
 
 
-def update_porfolio(orders, last_price, volume):
+def update_portfolio(orders, last_price, volume):
     '''add every coin bought to our portfolio for tracking/selling later'''
     if DEBUG: print(orders)
     for coin in orders:
@@ -357,7 +375,9 @@ def update_porfolio(orders, last_price, volume):
             'orderid': orders[coin][0]['orderId'],
             'timestamp': orders[coin][0]['time'],
             'bought_at': last_price[coin]['price'],
-            'volume': volume[coin]
+            'volume': volume[coin],
+            'stop_loss': -STOP_LOSS,
+            'take_profit': TAKE_PROFIT,
             }
 
         # save the coins in a json file in the same directory
@@ -368,7 +388,7 @@ def update_porfolio(orders, last_price, volume):
 
 
 def remove_from_portfolio(coins_sold):
-    '''Remove coins sold due to SL or TP from portofio'''
+    '''Remove coins sold due to SL or TP from portfolio'''
     for coin in coins_sold:
         coins_bought.pop(coin)
 
@@ -392,4 +412,6 @@ if __name__ == '__main__':
 
     for i in count():
         orders, last_price, volume = buy()
-        update_porfolio(orders, last_price, volume)
+        update_portfolio(orders, last_price, volume)
+        coins_sold = sell_coins()
+        remove_from_portfolio(coins_sold)
