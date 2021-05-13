@@ -57,6 +57,9 @@ PAIR_WITH = 'USDT'
 # Define the size of each trade, by default in USDT
 QUANTITY = 15
 
+# Define max numbers of coins to hold
+MAX_COINS = 5
+
 # List of pairs to exlcude
 # by default we're excluding the most popular fiat pairs
 # and some margin keywords, as we're only working on the SPOT account
@@ -154,7 +157,7 @@ def wait_for_price():
         
         print(f'not enough time has passed yet...')
         
-    else:
+   else:
         last_price = get_price()
         infoChange = -100.00
         infoCoin = 'none'
@@ -171,12 +174,20 @@ def wait_for_price():
                 infoStart = initial_price[coin]['price']
                 infoStop = last_price[coin]['price']
 
-            # each coin with higher gains than our CHANGE_IN_PRICE is added to the volatile_coins dict
+            # each coin with higher gains than our CHANGE_IN_PRICE is added to the volatile_coins dict if less than MAX_COINS is not reached.
             if threshold_check > CHANGE_IN_PRICE:
-                volatile_coins[coin] = threshold_check
-                volatile_coins[coin] = round(volatile_coins[coin], 3)
+                if len(coins_bought) < MAX_COINS:
+                    volatile_coins[coin] = threshold_check
+                    volatile_coins[coin] = round(volatile_coins[coin], 3)
+                    print(f'{coin} has gained {volatile_coins[coin]}% in the last {TIME_DIFFERENCE} seconds, calculating volume in {PAIR_WITH}')
+                else:
+                    print(f'{txcolors.WARNING}{coin} has gained {threshold_check}% in the last {TIME_DIFFERENCE} seconds, but you are holding max number of coins{txcolors.DEFAULT}')
 
-                print(f'{coin} has gained {volatile_coins[coin]}% in the last {TIME_DIFFERENCE} seconds, calculating volume in {PAIR_WITH}')
+        # Print more info if there are no volatile coins this iteration
+        if infoChange < CHANGE_IN_PRICE:
+                print(f'No coins moved more than {CHANGE_IN_PRICE}% in the last {TIME_DIFFERENCE} second(s)')
+
+        print(f'Max movement {float(infoChange):.2f}% by {infoCoin} from {float(infoStart):.4f} to {float(infoStop):.4f}')
 
         # Print more info if there are no volatile coins this iteration
         if len(volatile_coins) < 1:
