@@ -252,7 +252,7 @@ def buy():
             else:
                 orders[coin] = client.get_all_orders(symbol=coin, limit=1)
 
-                # binance sometimes returns an empty list, the code will wait here unti binance returns the order
+                # binance sometimes returns an empty list, the code will wait here until binance returns the order
                 while orders[coin] == []:
                     print('Binance is being slow in returning the order, calling the API again...')
 
