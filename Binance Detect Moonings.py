@@ -21,7 +21,7 @@ import json
 # Switch between testnet and mainnet
 # Setting this to False will use REAL funds, use at your own risk
 # Define your API keys below in order for the toggle to work
-TESTNET = True
+TESTNET = False
 
 
 # Get binance key and secret for TEST and MAINNET
@@ -58,7 +58,7 @@ PAIR_WITH = 'USDT'
 QUANTITY = 15
 
 # Define max numbers of coins to hold
-MAX_COINS = 5
+MAX_COINS = 10
 
 # List of pairs to exlcude
 # by default we're excluding the most popular fiat pairs
@@ -67,6 +67,7 @@ FIATS = ['EURUSDT', 'GBPUSDT', 'JPYUSDT', 'USDUSDT', 'DOWN', 'UP']
 
 # the amount of time in SECONDS to calculate the differnce from the current price
 TIME_DIFFERENCE = 30
+
 # Numer of times to check for TP/SL during each TIME_DIFFERENCE Minimum 1
 RECHECK_INTERVAL = 6
 
@@ -79,30 +80,34 @@ STOP_LOSS = 1.75
 # define in % when to take profit on a profitable coin
 TAKE_PROFIT = 3
 
-#Use custom tickers.txt list for filtering pairs
+# Use custom tickers.txt list for filtering pairs
 CUSTOM_LIST = False
 
-#Use log file for trades
+# Use log file for trades
 LOG_TRADES = True
 LOG_FILE = 'trades.txt'
 
-#Debug for additional console output
+# Debug for additional console output
 DEBUG = True
+
 
 ####################################################
 #                END OF USER INPUTS                #
 #                  Edit with care                  #
 ####################################################
+
+
+
+
+# for colourful logging to the console
 class txcolors:
     BUY = '\033[92m'
     WARNING = '\033[93m'
     SELL = '\033[91m'
     DEFAULT = '\033[39m'
-   
 
-# Load custom tickerlist from file tickers.txt into array tickers
+# Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
 if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
-
 
 # try to load all the coins bought by the bot if the file exists and is not empty
 coins_bought = {}
@@ -154,10 +159,10 @@ def wait_for_price():
             time.sleep((TIME_DIFFERENCE/RECHECK_INTERVAL))
             i += 1
             # let's wait here until the time passess...
-        
+
         print(f'not enough time has passed yet...')
-        
-   else:
+
+    else:
         last_price = get_price()
         infoChange = -100.00
         infoCoin = 'none'
@@ -180,6 +185,7 @@ def wait_for_price():
                     volatile_coins[coin] = threshold_check
                     volatile_coins[coin] = round(volatile_coins[coin], 3)
                     print(f'{coin} has gained {volatile_coins[coin]}% in the last {TIME_DIFFERENCE} seconds, calculating volume in {PAIR_WITH}')
+
                 else:
                     print(f'{txcolors.WARNING}{coin} has gained {threshold_check}% in the last {TIME_DIFFERENCE} seconds, but you are holding max number of coins{txcolors.DEFAULT}')
 
@@ -188,11 +194,6 @@ def wait_for_price():
                 print(f'No coins moved more than {CHANGE_IN_PRICE}% in the last {TIME_DIFFERENCE} second(s)')
 
         print(f'Max movement {float(infoChange):.2f}% by {infoCoin} from {float(infoStart):.4f} to {float(infoStop):.4f}')
-
-        # Print more info if there are no volatile coins this iteration
-        if len(volatile_coins) < 1:
-                print(f'No coins moved more than {CHANGE_IN_PRICE}% in the last {TIME_DIFFERENCE} second(s)')
-                print(f'Max movement {float(infoChange):.2f}% by {infoCoin} from {float(infoStart):.4f} to {float(infoStop):.4f}')
 
         return volatile_coins, len(volatile_coins), last_price
 
@@ -279,10 +280,12 @@ def buy():
 
                 else:
                     print('Order returned, saving order to file')
+
                     # Log trade
                     if LOG_TRADES:
                         write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
-                        
+
+
         else:
             print(f'Signal detected, but there is already an active trade on {coin}')
 
@@ -307,6 +310,7 @@ def sell_coins():
 
         # check that the price is above the take profit or below the stop loss
         if float(last_price[coin]['price']) > TP or float(last_price[coin]['price']) < SL:
+
             print(f"{txcolors.SELL}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange:.2f}%{txcolors.DEFAULT}")
 
             if TESTNET :
@@ -332,9 +336,11 @@ def sell_coins():
             else:
                 coins_sold[coin] = coins_bought[coin]
                 # Log trade
-                if LOG_TRADES: 
-                    profit=(LastPrice - BuyPrice) * coins_sold[coin]['volume']
+
+                if LOG_TRADES:
+                    profit = (LastPrice - BuyPrice) * coins_sold[coin]['volume']
                     write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%")
+
         else:
             print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {PriceChange:.2f}% ')
 
@@ -360,6 +366,7 @@ def update_porfolio(orders, last_price, volume):
 
         print(f'Order with id {orders[coin][0]["orderId"]} placed and saved to file')
 
+
 def remove_from_portfolio(coins_sold):
     '''Remove coins sold due to SL or TP from portofio'''
     for coin in coins_sold:
@@ -373,8 +380,8 @@ def write_log(logline):
     timestamp = datetime.now().strftime("%d/%m %H:%M:%S")
     with open(LOG_FILE,'a+') as f:
         f.write(timestamp + ' ' + logline + '\n')
-    
-    
+
+
 
 if __name__ == '__main__':
     print('Press Ctrl-Q to stop the script')
@@ -386,4 +393,3 @@ if __name__ == '__main__':
     for i in count():
         orders, last_price, volume = buy()
         update_porfolio(orders, last_price, volume)
-        
