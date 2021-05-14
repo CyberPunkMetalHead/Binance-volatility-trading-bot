@@ -65,7 +65,7 @@ MAX_COINS = 10
 # and some margin keywords, as we're only working on the SPOT account
 FIATS = ['EURUSDT', 'GBPUSDT', 'JPYUSDT', 'USDUSDT', 'DOWN', 'UP']
 
-# the amount of time in SECONDS to calculate the differnce from the current price
+# the amount of time in SECONDS to calculate the difference from the current price
 TIME_DIFFERENCE = 30
 
 # Numer of times to check for TP/SL during each TIME_DIFFERENCE Minimum 1
@@ -226,6 +226,7 @@ def convert_volume():
         try:
             info = client.get_symbol_info(coin)
             step_size = info['filters'][2]['stepSize']
+            print(f"step_size: {step_size}")
             lot_size[coin] = step_size.index('1') - 1
 
             if lot_size[coin] < 0:
@@ -343,8 +344,8 @@ def sell_coins():
             try:
 
                 volume = coins_bought[coin]['volume']
-                decimals = len(str(volume).split("."))
-                volume = float('{:.{}f}'.format(float(volume), 9))
+                decimals = len(str(volume).split(".")) + 1
+                volume = float('{:.{}f}'.format(float(volume), 18))
                 # decide whether to sell the whole lot or a CAPPED_SELL
                 if CAPPED_SELL:
                     sell_amount = volume*SELL_AMOUNT/100
@@ -352,8 +353,8 @@ def sell_coins():
                     sell_amount = volume
 
                 # convert to correct volume
-                sell_amount = float('{:.{}f}'.format(sell_amount, decimals - 1))
-                
+                sell_amount = float('{:.{}f}'.format(sell_amount, decimals))
+                print(f"SELLING {sell_amount}")
                 sell_coins_limit = client.create_order(
                     symbol = coin,
                     side = 'SELL',
