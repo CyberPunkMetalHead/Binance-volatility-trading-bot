@@ -41,37 +41,25 @@ You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/202
         ```
 
 
-2. Set environment variables for API Keys
-    - Linux
-        ```sh
-        # FOR MAINNET
-        export binance_api_stalkbot_live="Your key"
-        export binance_secret_stalkbot_live="Your secret"
+2. Copy `creds.example.yml` to `creds.yml` (or whatever you want.) and update the creds.
 
-        # TESTNET
-        export binance_api_stalkbot_testnet="Your key"
-        export binance_secret_stalkbot_testnet="Your secret"
-        ```
-    - [Windows](https://superuser.com/questions/79612/setting-and-getting-windows-environment-variables-from-the-command-prompt)
-
-
-3. Configure input params as necessary
-    ```py
-    ####################################################
-    #                   USER INPUTS                    #
-    # You may edit to adjust the parameters of the bot #
-    ####################################################
-    # select what to pair the coins to and pull all coins paied with PAIR_WITH
-    
-    PAIR_WITH = 'USDT'
-
-    # Define the size of each trade, by default in USDT
-    QUANTITY = 15
-
-    # Define max numbers of coins to hold
-    MAX_COINS = 10
-    ... # redacted full list
+    ```sh
+    cp creds.example.yml > creds.yml
     ```
+    ```yml
+    # MAIN NET
+    prod:
+        access_key: replace_me
+        secret_key: replace_me
+
+    # TEST NET
+    test:
+        access_key: replace_me
+        secret_key: replace_me
+    ```
+
+
+3. Configure input params as in `config.yml`
 
 4. Run the script
     - Standard 
@@ -84,6 +72,7 @@ You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/202
         ```
         The logs are stored in log.txt. To stop the process either look in your process list with `ps aux | grep -i python3` and kill with `kill PROCESS_ID` or `killall python3` when you know what you're doing.
 
+5. Use the `--help` flag if you want to see supported arguments
 
 ## Troubleshooting
 
