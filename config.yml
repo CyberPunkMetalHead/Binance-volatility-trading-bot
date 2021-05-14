@@ -1,18 +1,23 @@
+# These options apply to how the script will operate.
 script_options:
+  # Switch between testnet and mainnet
+  # Setting this to False will use REAL funds, use at your own risk
   TESTNET: True
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
 
+
+# These options apply to the trading methods the script executes
 trading_options:
   # select what to pair the coins to and pull all coins paied with PAIR_WITH
   PAIR_WITH: USDT
-  
-  # Total ammount per trade
 
+  # Total ammount per trade
   QUANTITY: 15
+
   # List of pairs to exlcude
   # by default we're excluding the most popular fiat pairs
-  FIATS: 
+  FIATS:
     - EURUSDT
     - GBPUSDT
     - JPYUSDT
@@ -22,7 +27,7 @@ trading_options:
 
   # Maximum number of coints to hold
   MAX_COINS: 10
-  
+
   # the amount of time in SECONDS to calculate the differnce from the current price
   TIME_DIFFERENCE: 30
 
@@ -40,3 +45,11 @@ trading_options:
 
   # Use custom tickers.txt list for filtering pairs
   CUSTOM_LIST: False
+
+  # whether to use trailing stop loss or not; default is True
+  USE_TRAILING_STOP_LOSS: True
+
+  # when hit TAKE_PROFIT, move STOP_LOSS to TRAILING_STOP_LOSS percentage points below TAKE_PROFIT hence locking in profit
+  # when hit TAKE_PROFIT, move TAKE_PROFIT up by TRAILING_TAKE_PROFIT percentage points
+  TRAILING_STOP_LOSS: 2
+  TRAILING_TAKE_PROFIT: 2
