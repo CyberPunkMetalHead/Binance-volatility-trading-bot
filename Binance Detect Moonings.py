@@ -18,93 +18,16 @@ from itertools import count
 # used to store trades and sell assets
 import json
 
-# Switch between testnet and mainnet
-# Setting this to False will use REAL funds, use at your own risk
-# Define your API keys below in order for the toggle to work
-TESTNET = True
 
+# Load helper modules
+from helpers.parameters import (
+    parse_args, load_config
+)
 
-# Get binance key and secret for TEST and MAINNET
-# The keys below are pulled from environment variables using os.getenv
-# Simply remove this and use the following format instead: api_key_test = 'YOUR_API_KEY'
-api_key_test = os.getenv('binance_api_stalkbot_testnet')
-api_secret_test = os.getenv('binance_secret_stalkbot_testnet')
-
-api_key_live = os.getenv('binance_api_stalkbot_live')
-api_secret_live = os.getenv('binance_secret_stalkbot_live')
-
-
-# Authenticate with the client
-if TESTNET:
-    client = Client(api_key_test, api_secret_test)
-
-    # The API URL needs to be manually changed in the library to work on the TESTNET
-    client.API_URL = 'https://testnet.binance.vision/api'
-
-else:
-    client = Client(api_key_live, api_secret_live)
-
-
-####################################################
-#                   USER INPUTS                    #
-# You may edit to adjust the parameters of the bot #
-####################################################
-
-
-# select what to pair the coins to and pull all coins paired with PAIR_WITH
-PAIR_WITH = 'USDT'
-
-# Define the size of each trade, by default in USDT
-QUANTITY = 15
-
-# Define max numbers of coins to hold
-MAX_COINS = 10
-
-# List of pairs to exclude
-# by default we're excluding the most popular fiat pairs
-# and some margin keywords, as we're only working on the SPOT account
-FIATS = ['EURUSDT', 'GBPUSDT', 'JPYUSDT', 'USDUSDT', 'DOWN', 'UP']
-
-# the amount of time in SECONDS to calculate the differnce from the current price
-TIME_DIFFERENCE = 30
-
-# Numer of times to check for TP/SL during each TIME_DIFFERENCE Minimum 1
-RECHECK_INTERVAL = 6
-
-# the difference in % between the first and second checks for the price.
-CHANGE_IN_PRICE = 1.25
-
-# define in % when to sell a coin that's not making a profit
-STOP_LOSS = 1.75
-
-# define in % when to take profit on a profitable coin
-TAKE_PROFIT = 3
-
-# whether to use trailing stop loss or not; default is True
-USE_TRAILING_STOP_LOSS = True
-
-# when hit TAKE_PROFIT, move STOP_LOSS to TRAILING_STOP_LOSS percentage points below TAKE_PROFIT hence locking in profit
-# when hit TAKE_PROFIT, move TAKE_PROFIT up by TRAILING_TAKE_PROFIT percentage points
-TRAILING_STOP_LOSS = 2
-TRAILING_TAKE_PROFIT = 2
-
-# Use custom tickers.txt list for filtering pairs
-CUSTOM_LIST = False
-
-# Use log file for trades
-LOG_TRADES = True
-LOG_FILE = 'trades.txt'
-
-# Debug for additional console output
-DEBUG = True
-
-
-####################################################
-#                END OF USER INPUTS                #
-#                  Edit with care                  #
-####################################################
-
-
+# Load creds modules
+from helpers.handle_creds import (
+    load_correct_creds
+)
 
 
 # for colourful logging to the console
@@ -113,24 +36,6 @@ class txcolors:
     WARNING = '\033[93m'
     SELL = '\033[91m'
     DEFAULT = '\033[39m'
-
-# Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
-if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
-
-# try to load all the coins bought by the bot if the file exists and is not empty
-coins_bought = {}
-
-# path to the saved coins_bought file
-coins_bought_file_path = 'coins_bought.json'
-
-# use separate files for testnet and live
-if TESTNET:
-    coins_bought_file_path = 'testnet_' + coins_bought_file_path
-
-# if saved coins_bought json file exists and it's not empty then load it
-if os.path.isfile(coins_bought_file_path) and os.stat(coins_bought_file_path).st_size!= 0:
-    with open(coins_bought_file_path) as file:
-            coins_bought = json.load(file)
 
 
 def get_price():
@@ -404,14 +309,92 @@ def write_log(logline):
 
 
 if __name__ == '__main__':
+    # Load arguments then parse settings
+    args = parse_args()
+    
+    DEFAULT_CONFIG_FILE = 'config.yml'
+    DEFAULT_CREDS_FILE = 'creds.yml'
+
+    config_file = args.config if args.config else DEFAULT_CONFIG_FILE
+    creds_file = args.creds if args.creds else DEFAULT_CREDS_FILE
+    parsed_config = load_config(config_file)
+    parsed_creds = load_config(creds_file)
+    
+    
+
+    # Default no debugging
+    DEBUG = False
+
+    # Load system vars
+    TESTNET = parsed_config['script_options']['TESTNET']
+    LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
+    LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
+    DEBUG_SETTING = parsed_config['script_options'].get('DEBUG')
+
+    # Load trading vars
+    PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
+    QUANTITY = parsed_config['trading_options']['QUANTITY']
+    MAX_COINS = parsed_config['trading_options']['MAX_COINS']
+    FIATS = parsed_config['trading_options']['FIATS']
+    TIME_DIFFERENCE = parsed_config['trading_options']['TIME_DIFFERENCE']
+    RECHECK_INTERVAL = parsed_config['trading_options']['RECHECK_INTERVAL']
+    CHANGE_IN_PRICE = parsed_config['trading_options']['CHANGE_IN_PRICE']
+    STOP_LOSS = parsed_config['trading_options']['STOP_LOSS']
+    TAKE_PROFIT = parsed_config['trading_options']['TAKE_PROFIT']
+    CUSTOM_LIST = parsed_config['trading_options']['CUSTOM_LIST']
+    USE_TRAILING_STOP_LOSS = parsed_config['trading_options']['USE_TRAILING_STOP_LOSS']
+    TRAILING_STOP_LOSS = parsed_config['trading_options']['TRAILING_STOP_LOSS']
+    TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
+    
+    if DEBUG_SETTING or args.debug:
+        DEBUG = True
+
+    # Load creds for correct envionment
+    # If testnet true in config.yml, load test keys
+    access_key, secret_key = load_correct_creds(parsed_creds, TESTNET)
+    
+    if DEBUG: 
+        print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
+        print(f'Your credentials have been loaded from {creds_file}')
+            
+    
+    # Authenticate with the client
+    if TESTNET:
+        client = Client(access_key, secret_key)
+
+        # The API URL needs to be manually changed in the library to work on the TESTNET
+        client.API_URL = 'https://testnet.binance.vision/api'
+
+    else:
+        client = Client(access_key, secret_key)
+
+        # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
+    if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
+
+    # try to load all the coins bought by the bot if the file exists and is not empty
+    coins_bought = {}
+
+    # path to the saved coins_bought file
+    coins_bought_file_path = 'coins_bought.json'
+
+    # use separate files for testnet and live
+    if TESTNET:
+        coins_bought_file_path = 'testnet_' + coins_bought_file_path
+
+    # if saved coins_bought json file exists and it's not empty then load it
+    if os.path.isfile(coins_bought_file_path) and os.stat(coins_bought_file_path).st_size!= 0:
+        with open(coins_bought_file_path) as file:
+                coins_bought = json.load(file)
+
     print('Press Ctrl-Q to stop the script')
 
     if not TESTNET:
         print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
         time.sleep(30)
 
-    for i in count():
+    while True:
         orders, last_price, volume = buy()
         update_portfolio(orders, last_price, volume)
         coins_sold = sell_coins()
         remove_from_portfolio(coins_sold)
+        
