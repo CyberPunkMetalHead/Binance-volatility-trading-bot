@@ -78,7 +78,7 @@ CHANGE_IN_PRICE = 1.25
 STOP_LOSS = 1.75
 
 # define in % when to take profit on a profitable coin
-TAKE_PROFIT = 6
+TAKE_PROFIT = 3
 
 # BINANCE cannot always sell all that it buys. Select in % how much to sell
 # Set to True to toggle SELL_AMOUNT
@@ -342,16 +342,17 @@ def sell_coins():
             # try to create a real order if the test orders did not raise an exception
             try:
 
+                volume = coins_bought[coin]['volume']
+                decimals = len(str(volume).split("."))
+                volume = float('{:.{}f}'.format(float(volume), 9))
                 # decide whether to sell the whole lot or a CAPPED_SELL
                 if CAPPED_SELL:
-                    sell_amount = coins_bought[coin]['volume']*SELL_AMOUNT/100
+                    sell_amount = volume*SELL_AMOUNT/100
                 else:
-                    sell_amount = coins_bought[coin]['volume']
-
-                decimals = len(str(coins_bought[coin]['volume']).split("."))
+                    sell_amount = volume
 
                 # convert to correct volume
-                sell_amount = float('{:.{}f}'.format(sell_amount, decimals))
+                sell_amount = float('{:.{}f}'.format(sell_amount, decimals - 1))
                 
                 sell_coins_limit = client.create_order(
                     symbol = coin,
@@ -391,7 +392,7 @@ def update_portfolio(orders, last_price):
             'orderid': orders[coin][0]['orderId'],
             'timestamp': orders[coin][0]['time'],
             'bought_at': last_price[coin]['price'],
-            'volume': orders[coin][0]['executedQty'],
+            'volume': float(orders[coin][0]['executedQty']),
             'stop_loss': -STOP_LOSS,
             'take_profit': TAKE_PROFIT,
             }
