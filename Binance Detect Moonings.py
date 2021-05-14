@@ -1,5 +1,4 @@
 # use for environment variables
-from io import DEFAULT_BUFFER_SIZE
 import os
 
 # Needed for colorful console output Install with: python3 -m pip install colorama (Mac/Linux) or pip install colorama (PC)
