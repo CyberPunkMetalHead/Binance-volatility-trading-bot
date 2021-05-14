@@ -1,6 +1,8 @@
 # Frequently Asked Question
 
-## 
+## Questions
+Question: I'm running in [testnet](https://testnet.binance.vision/) and my values / and data doesnt seem correct?
+Answer: Testnet should ONLY be used to test functionality. It does not mimic the market. If things seem off here it's because it is. 
 
 ## Errors and solutions
 
