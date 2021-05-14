@@ -78,7 +78,13 @@ CHANGE_IN_PRICE = 1.25
 STOP_LOSS = 1.75
 
 # define in % when to take profit on a profitable coin
-TAKE_PROFIT = 3
+TAKE_PROFIT = 6
+
+# BINANCE cannot always sell all that it buys. Select in % how much to sell
+# Set to True to toggle SELL_AMOUNT
+CAPPED_SELL = True
+# 0.075% if paying with BNB or #0.1% if not paying fees with BNB
+SELL_AMOUNT = 99.25
 
 # whether to use trailing stop loss or not; default is True
 USE_TRAILING_STOP_LOSS = True
@@ -287,6 +293,8 @@ def buy():
                     time.sleep(1)
 
                 else:
+                    # track the actual volume purchased which might be different from the requested volume
+                	bought_volume = orders[coin][0]['executedQty']
                     print('Order returned, saving order to file')
 
                     # Log trade
@@ -297,7 +305,7 @@ def buy():
         else:
             print(f'Signal detected, but there is already an active trade on {coin}')
 
-    return orders, last_price, volume
+    return orders, last_price, bought_volume
 
 
 def sell_coins():
@@ -337,11 +345,22 @@ def sell_coins():
             # try to create a real order if the test orders did not raise an exception
             try:
 
+				# decide whether to sell the whole lot or a CAPPED_SELL
+                if CAPPED_SELL:
+                    sell_amount = coins_bought[coin]['volume']*SELL_AMOUNT/100
+                else:
+                    sell_amount = coins_bought[coin]['volume']
+
+                decimals = len(str(coins_bought[coin]['volume']).split("."))
+
+                # convert to correct volume
+                sell_amount = float('{:.{}f}'.format(sell_amount, decimals))
+                
                 sell_coins_limit = client.create_order(
                     symbol = coin,
                     side = 'SELL',
                     type = 'MARKET',
-                    quantity = coins_bought[coin]['volume']
+                    quantity = sell_amount  # coins_bought[coin]['volume']
 
                 )
 
