@@ -338,7 +338,7 @@ def sell_coins():
 
             continue
 
-        # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case 
+        # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
         if float(last_price[coin]['price']) < SL or (
                 float(last_price[coin]['price']) > TP and not USE_TRAILING_STOP_LOSS):
             print(
@@ -351,11 +351,14 @@ def sell_coins():
 
             # try to create a real order if the test orders did not raise an exception
             try:
-                sell_amount = coins_bought[coin]['volume']
-                tick_size = float(next(
-                    filter(lambda f: f['filterType'] == 'LOT_SIZE', client.get_symbol_info(coin)['filters'])
-                )['stepSize'])
-                rounded_amount = round_step_size(sell_amount, tick_size)
+                if coins_bought[coin]['step_size']:
+                    rounded_amount = round_step_size(coins_bought[coin]['volume'], coins_bought[coin]['step_size'])
+                else:
+                    tick_size = float(next(
+                        filter(lambda f: f['filterType'] == 'LOT_SIZE', client.get_symbol_info(coin)['filters'])
+                    )['stepSize'])
+                    rounded_amount = round_step_size(coins_bought[coin]['volume'], tick_size)
+
                 sell_coins_limit = client.create_order(
                     symbol=coin,
                     side='SELL',
@@ -388,6 +391,9 @@ def update_portfolio(orders, last_price, volume):
     '''add every coin bought to our portfolio for tracking/selling later'''
     if DEBUG: print(orders)
     for coin in orders:
+        coin_step_size = float(next(
+                        filter(lambda f: f['filterType'] == 'LOT_SIZE', client.get_symbol_info(orders[coin][0]['symbol'])['filters'])
+                        )['stepSize'])
         coins_bought[coin] = {
             'symbol': orders[coin][0]['symbol'],
             'orderid': orders[coin][0]['orderId'],
@@ -396,6 +402,7 @@ def update_portfolio(orders, last_price, volume):
             'volume': volume[coin],
             'stop_loss': -STOP_LOSS,
             'take_profit': TAKE_PROFIT,
+            'step_size': coin_step_size,
         }
 
         # save the coins in a json file in the same directory
