@@ -1,2 +1,2 @@
-python-binance==0.7.9
+python-binance==1.0.10
 colorama==0.4.4
