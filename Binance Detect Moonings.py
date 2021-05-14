@@ -1,4 +1,5 @@
 # use for environment variables
+from io import DEFAULT_BUFFER_SIZE
 import os
 
 # Needed for colorful console output Install with: python3 -m pip install colorama (Mac/Linux) or pip install colorama (PC)
@@ -311,8 +312,12 @@ def write_log(logline):
 if __name__ == '__main__':
     # Load arguments then parse settings
     args = parse_args()
-    config_file = args.config if args.config else 'config.yml'
-    creds_file = args.creds if args.creds else 'creds.yml'
+    
+    DEFAULT_CONFIG_FILE = 'config.yml'
+    DEFAULT_CREDS_FILE = 'creds.yml'
+
+    config_file = args.config if args.config else DEFAULT_CONFIG_FILE
+    creds_file = args.creds if args.creds else DEFAULT_CREDS_FILE
     parsed_config = load_config(config_file)
     parsed_creds = load_config(creds_file)
     
