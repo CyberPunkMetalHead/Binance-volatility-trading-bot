@@ -351,9 +351,9 @@ def sell_coins():
 
             # try to create a real order if the test orders did not raise an exception
             try:
-                if coins_bought[coin]['step_size']:
+                try:
                     rounded_amount = round_step_size(coins_bought[coin]['volume'], coins_bought[coin]['step_size'])
-                else:
+                except Exception:
                     tick_size = float(next(
                         filter(lambda f: f['filterType'] == 'LOT_SIZE', client.get_symbol_info(coin)['filters'])
                     )['stepSize'])
