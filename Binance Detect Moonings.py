@@ -126,7 +126,7 @@ if os.path.isfile(coins_bought_file_path) and os.stat(coins_bought_file_path).st
 
 # rolling window of prices; cyclical queue
 historical_prices = [None] * (TIME_DIFFERENCE * RECHECK_INTERVAL)
-hsp_head = 0
+hsp_head = -1
 
 def get_price(add_to_historical=True):
     '''Return the current price for all coins on binance'''
@@ -146,8 +146,8 @@ def get_price(add_to_historical=True):
                 initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
 
     if add_to_historical:
-        historical_prices[hsp_head] = initial_price
         hsp_head = (hsp_head + 1) % (TIME_DIFFERENCE * RECHECK_INTERVAL)
+        historical_prices[hsp_head] = initial_price
 
     return initial_price
 
