@@ -73,7 +73,8 @@ RECHECK_INTERVAL = 6
 
 # the difference in % between the first and second checks for the price.
 CHANGE_IN_PRICE = 1.25
-
+# whether to use stop loss or not since you can wait for that coin to go up again or manual selling it
+USE_STOP_LOSS = True
 # define in % when to sell a coin that's not making a profit
 STOP_LOSS = 1.75
 
@@ -319,15 +320,15 @@ def sell_coins():
         # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
         if float(last_price[coin]['price']) > TP and USE_TRAILING_STOP_LOSS:
             print("TP reached, adjusting TP and SL accordingly to lock-in profit")
-            
+
             # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
             coins_bought[coin]['take_profit'] += TRAILING_TAKE_PROFIT
             coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
 
             continue
 
-        # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case 
-        if float(last_price[coin]['price']) < SL or (float(last_price[coin]['price']) > TP and not USE_TRAILING_STOP_LOSS):
+        # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
+        if float(last_price[coin]['price']) < SL and USE_STOP_LOSS or (float(last_price[coin]['price']) > TP and not USE_TRAILING_STOP_LOSS):
             print(f"{txcolors.SELL}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange:.2f}%{txcolors.DEFAULT}")
 
             if TESTNET :
