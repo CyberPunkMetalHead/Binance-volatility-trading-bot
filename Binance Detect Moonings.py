@@ -24,15 +24,11 @@ from helpers.parameters import (
     parse_args, load_config
 )
 
+# Load creds modules
+from helpers.handle_creds import (
+    load_correct_creds
+)
 
-# Get binance key and secret for TEST and MAINNET
-# The keys below are pulled from environment variables using os.getenv
-# Simply remove this and use the following format instead: api_key_test = 'YOUR_API_KEY'
-api_key_test = os.getenv('binance_api_stalkbot_testnet')
-api_secret_test = os.getenv('binance_secret_stalkbot_testnet')
-
-api_key_live = os.getenv('binance_api_stalkbot_live')
-api_secret_live = os.getenv('binance_secret_stalkbot_live')
 
 # for colourful logging to the console
 class txcolors:
@@ -316,8 +312,12 @@ if __name__ == '__main__':
     # Load arguments then parse settings
     args = parse_args()
     config_file = args.config if args.config else 'config.yml'
+    creds_file = args.creds if args.creds else 'creds.yml'
     parsed_config = load_config(config_file)
+    parsed_creds = load_config(creds_file)
     
+    
+
     # Default no debugging
     DEBUG = False
 
@@ -341,20 +341,28 @@ if __name__ == '__main__':
     USE_TRAILING_STOP_LOSS = parsed_config['trading_options']['USE_TRAILING_STOP_LOSS']
     TRAILING_STOP_LOSS = parsed_config['trading_options']['TRAILING_STOP_LOSS']
     TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
+    
     if DEBUG_SETTING or args.debug:
         DEBUG = True
+
+    # Load creds for correct envionment
+    # If testnet true in config.yml, load test keys
+    access_key, secret_key = load_correct_creds(parsed_creds, TESTNET)
     
+    if DEBUG: 
+        print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
+        print(f'Your credentials have been loaded from {creds_file}')
+            
     
-    if DEBUG: print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
     # Authenticate with the client
     if TESTNET:
-        client = Client(api_key_test, api_secret_test)
+        client = Client(access_key, secret_key)
 
         # The API URL needs to be manually changed in the library to work on the TESTNET
         client.API_URL = 'https://testnet.binance.vision/api'
 
     else:
-        client = Client(api_key_live, api_secret_live)
+        client = Client(access_key, secret_key)
 
         # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
     if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
@@ -380,8 +388,9 @@ if __name__ == '__main__':
         print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
         time.sleep(30)
 
-    for i in count():
+    while True:
         orders, last_price, volume = buy()
         update_portfolio(orders, last_price, volume)
         coins_sold = sell_coins()
         remove_from_portfolio(coins_sold)
+        
