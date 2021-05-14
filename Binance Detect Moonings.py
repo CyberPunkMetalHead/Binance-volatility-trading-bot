@@ -338,7 +338,9 @@ if __name__ == '__main__':
     STOP_LOSS = parsed_config['trading_options']['STOP_LOSS']
     TAKE_PROFIT = parsed_config['trading_options']['TAKE_PROFIT']
     CUSTOM_LIST = parsed_config['trading_options']['CUSTOM_LIST']
-    
+    USE_TRAILING_STOP_LOSS = parsed_config['trading_options']['USE_TRAILING_STOP_LOSS']
+    TRAILING_STOP_LOSS = parsed_config['trading_options']['TRAILING_STOP_LOSS']
+    TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
     if DEBUG_SETTING or args.debug:
         DEBUG = True
     
