@@ -83,7 +83,6 @@ TAKE_PROFIT = 6
 # BINANCE cannot always sell all that it buys. Select in % how much to sell
 # Set to True to toggle SELL_AMOUNT
 CAPPED_SELL = True
-# 0.075% if paying with BNB or #0.1% if not paying fees with BNB
 SELL_AMOUNT = 99.25
 
 # whether to use trailing stop loss or not; default is True
@@ -255,6 +254,7 @@ def convert_volume():
 def buy():
     '''Place Buy market orders for each volatile coin found'''
 
+
     volume, last_price = convert_volume()
     orders = {}
 
@@ -293,19 +293,16 @@ def buy():
                     time.sleep(1)
 
                 else:
-                    # track the actual volume purchased which might be different from the requested volume
-                	bought_volume = orders[coin][0]['executedQty']
                     print('Order returned, saving order to file')
 
                     # Log trade
                     if LOG_TRADES:
                         write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
 
-
         else:
             print(f'Signal detected, but there is already an active trade on {coin}')
 
-    return orders, last_price, bought_volume
+    return orders, last_price,
 
 
 def sell_coins():
@@ -345,7 +342,7 @@ def sell_coins():
             # try to create a real order if the test orders did not raise an exception
             try:
 
-				# decide whether to sell the whole lot or a CAPPED_SELL
+                # decide whether to sell the whole lot or a CAPPED_SELL
                 if CAPPED_SELL:
                     sell_amount = coins_bought[coin]['volume']*SELL_AMOUNT/100
                 else:
@@ -384,7 +381,7 @@ def sell_coins():
     return coins_sold
 
 
-def update_portfolio(orders, last_price, volume):
+def update_portfolio(orders, last_price):
     '''add every coin bought to our portfolio for tracking/selling later'''
     if DEBUG: print(orders)
     for coin in orders:
@@ -394,7 +391,7 @@ def update_portfolio(orders, last_price, volume):
             'orderid': orders[coin][0]['orderId'],
             'timestamp': orders[coin][0]['time'],
             'bought_at': last_price[coin]['price'],
-            'volume': volume[coin],
+            'volume': orders[coin][0]['executedQty'],
             'stop_loss': -STOP_LOSS,
             'take_profit': TAKE_PROFIT,
             }
@@ -427,10 +424,10 @@ if __name__ == '__main__':
 
     if not TESTNET:
         print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
-        time.sleep(30)
+        # time.sleep(30)
 
     for i in count():
-        orders, last_price, volume = buy()
-        update_portfolio(orders, last_price, volume)
+        orders, last_price = buy()
+        update_portfolio(orders, last_price)
         coins_sold = sell_coins()
         remove_from_portfolio(coins_sold)
