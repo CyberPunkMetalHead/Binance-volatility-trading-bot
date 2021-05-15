@@ -10,6 +10,11 @@
 | `APIError(code=-1021): Timestamp for this request was 1000ms ahead of the server's time` |  Update your computer/servers ntp server to `time.nist.gov` |
 |`'NoneType' object has no attribute 'encode'`| Your API key is not correct. Ensure the environment (mainnet/testnet) matches the API keys used |
 |`insufficient funds` Errors| Make sure you have the available USDT. Make sure you dont have lots of it on order. Ensure you QUANTITY is at least 15. |
-|Im getting weird / unreliable values using testnet|  Testnet isn't for testing strategies. It's for testing functionality. We've talked about adding functionality to the main script to run against mainnet but with bogus buys. nothing yet. |
-| I'm getting Binance API Errors| Go take a look at the Binance API documentation Exceptions page https://github.com/binance/binance-spot-api-docs/blob/master/errors.md |
-| Im getting python errors (stack trace)| Check our FAQ on github  https://github.com/CyberPunkMetalHead/Binance-volatility-trading-bot/blob/main/FAQ.md |
+| Other Binance API Errors| Go take a look at the Binance API documentation Exceptions page https://github.com/binance/binance-spot-api-docs/blob/master/errors.md |
+
+## Questions and Answers
+
+| Question   |   Answer |
+|----------|-------------|
+|Why am I getting weird / unreliable values using testnet|  Testnet isn't for testing strategies. It's for testing functionality. We've talked about adding functionality to the main script to run against mainnet but with bogus buys. nothing yet. |
+
