@@ -46,6 +46,13 @@ You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/202
     ```sh
     cp creds.example.yml > creds.yml
     ```
+   ***
+   ###in ubuntu use  
+   
+   ``` sh 
+   cp creds.example.yml  creds.yml
+   ```
+   ***
     ```yml
     # MAIN NET
     prod:
