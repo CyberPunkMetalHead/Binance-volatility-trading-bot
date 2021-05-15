@@ -1,14 +1,10 @@
-
-# import the Binance Client
-from binance.client import Client
 from datetime import datetime
 
-# import local dependencies
-from config import client, CUSTOM_LIST, PAIR_WITH, FIATS
+from config import client, CUSTOM_LIST, PAIR_WITH, FIATS, tickers
 
 
 def get_price():
-    '''Return the current price for all coins on binance'''
+    """Return the current price for all coins on binance."""
 
     initial_price = {}
     prices = client.get_all_tickers()
@@ -16,10 +12,16 @@ def get_price():
     for coin in prices:
 
         if CUSTOM_LIST:
-            if any(item + PAIR_WITH == coin['symbol'] for item in tickers) and all(item not in coin['symbol'] for item in FIATS):
-                initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
+            coin_is_in_ticker = any(item + PAIR_WITH in coin['symbol'] for item in tickers)
         else:
-            if PAIR_WITH in coin['symbol'] and all(item not in coin['symbol'] for item in FIATS):
-                initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
+            coin_is_in_ticker = PAIR_WITH in coin['symbol']
+
+        coin_is_not_in_blocklist = all(item not in coin['symbol'] for item in FIATS)
+
+        if coin_is_in_ticker and coin_is_not_in_blocklist:
+            initial_price[coin['symbol']] = {
+                'price': coin['price'],
+                'time': datetime.now(),
+            }
 
     return initial_price
