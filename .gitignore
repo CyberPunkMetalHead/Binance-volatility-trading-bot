@@ -1,0 +1,10 @@
+creds.yml
+
+# Dont upload json files
+*.json
+
+# Virtual environment
+.venv
+
+# IDE settings
+.vscode
