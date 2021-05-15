@@ -1,4 +1,6 @@
-# for colourful logging to the console
+"""
+For colourful logging to the console.
+"""
 
 from colorama import init
 init()
