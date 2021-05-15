@@ -163,9 +163,18 @@ def buy():
         if coin not in coins_bought:
             print(f"{txcolors.BUY}Preparing to buy {volume[coin]} {coin}{txcolors.DEFAULT}")
 
-            if TESTNET :
-                # create test order before pushing an actual order
-                test_order = client.create_test_order(symbol=coin, side='BUY', type='MARKET', quantity=volume[coin])
+            if TEST_MODE:
+                orders[coin] = [{
+                    'symbol': coin,
+                    'orderId': 0,
+                    'time': datetime.now().timestamp()
+                }]
+
+                # Log trade
+                if LOG_TRADES:
+                    write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
+
+                continue
 
             # try to create a real order if the test orders did not raise an exception
             try:
@@ -235,20 +244,17 @@ def sell_coins():
         if float(last_price[coin]['price']) < SL or (float(last_price[coin]['price']) > TP and not USE_TRAILING_STOP_LOSS):
             print(f"{txcolors.SELL}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange:.2f}%{txcolors.DEFAULT}")
 
-            if TESTNET :
-                # create test order before pushing an actual order
-                test_order = client.create_test_order(symbol=coin, side='SELL', type='MARKET', quantity=coins_bought[coin]['volume'])
-
-            # try to create a real order if the test orders did not raise an exception
+            # try to create a real order
             try:
 
-                sell_coins_limit = client.create_order(
-                    symbol = coin,
-                    side = 'SELL',
-                    type = 'MARKET',
-                    quantity = coins_bought[coin]['volume']
+                if not TEST_MODE:
+                    sell_coins_limit = client.create_order(
+                        symbol = coin,
+                        side = 'SELL',
+                        type = 'MARKET',
+                        quantity = coins_bought[coin]['volume']
 
-                )
+                    )
 
             # error handling here in case position cannot be placed
             except Exception as e:
@@ -326,7 +332,7 @@ if __name__ == '__main__':
     DEBUG = False
 
     # Load system vars
-    TESTNET = parsed_config['script_options']['TESTNET']
+    TEST_MODE = parsed_config['script_options']['TEST_MODE']
     LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
     LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
     DEBUG_SETTING = parsed_config['script_options'].get('DEBUG')
@@ -349,9 +355,8 @@ if __name__ == '__main__':
     if DEBUG_SETTING or args.debug:
         DEBUG = True
 
-    # Load creds for correct envionment
-    # If testnet true in config.yml, load test keys
-    access_key, secret_key = load_correct_creds(parsed_creds, TESTNET)
+    # Load creds for correct environment
+    access_key, secret_key = load_correct_creds(parsed_creds)
     
     if DEBUG: 
         print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
@@ -359,16 +364,9 @@ if __name__ == '__main__':
             
     
     # Authenticate with the client
-    if TESTNET:
-        client = Client(access_key, secret_key)
+    client = Client(access_key, secret_key)
 
-        # The API URL needs to be manually changed in the library to work on the TESTNET
-        client.API_URL = 'https://testnet.binance.vision/api'
-
-    else:
-        client = Client(access_key, secret_key)
-
-        # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
+    # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
     if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
 
     # try to load all the coins bought by the bot if the file exists and is not empty
@@ -377,9 +375,9 @@ if __name__ == '__main__':
     # path to the saved coins_bought file
     coins_bought_file_path = 'coins_bought.json'
 
-    # use separate files for testnet and live
-    if TESTNET:
-        coins_bought_file_path = 'testnet_' + coins_bought_file_path
+    # use separate files for testing and live trading
+    if TEST_MODE:
+        coins_bought_file_path = 'test_' + coins_bought_file_path
 
     # if saved coins_bought json file exists and it's not empty then load it
     if os.path.isfile(coins_bought_file_path) and os.stat(coins_bought_file_path).st_size!= 0:
@@ -388,7 +386,7 @@ if __name__ == '__main__':
 
     print('Press Ctrl-Q to stop the script')
 
-    if not TESTNET:
+    if not TEST_MODE:
         print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
         time.sleep(30)
 
