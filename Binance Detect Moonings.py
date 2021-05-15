@@ -7,9 +7,6 @@ import time
 # used for dates
 from datetime import datetime, timedelta
 
-# used to repeatedly execute the code
-from itertools import count
-
 # needed for the binance API and websockets
 from binance.client import Client
 
