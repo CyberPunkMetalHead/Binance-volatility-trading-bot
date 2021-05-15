@@ -17,7 +17,11 @@ def convert_volume():
     lot_size = {}
     volume = {}
 
+
+
     for coin in volatile_coins:
+
+
 
         # Find the correct step size for each coin.
         # For example, max accuracy for BTC is 6 decimal points, while XRP is
