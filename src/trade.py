@@ -4,10 +4,10 @@ This module handles the buy function of the bot.
 
 import time
 
-from colors import txcolors
-from config import coins_bought, LOG_TRADES, TESTNET, client
-from convert_volume import convert_volume
-from save_trade import write_log
+from .colors import txcolors
+from .config import coins_bought, LOG_TRADES, TESTNET, client
+from .convert_volume import convert_volume
+from .save_trade import write_log
 
 
 def buy():

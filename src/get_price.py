@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from config import client, CUSTOM_LIST, PAIR_WITH, FIATS, tickers
+from .config import client, CUSTOM_LIST, PAIR_WITH, FIATS, tickers
 
 
 def get_price():

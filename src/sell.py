@@ -2,10 +2,10 @@
 This module handles the sell logic of our bot.
 """
 
-from colors import txcolors
-from config import coins_bought, client, TRAILING_TAKE_PROFIT, TRAILING_STOP_LOSS, USE_TRAILING_STOP_LOSS, LOG_TRADES, TESTNET
-from get_price import get_price
-from save_trade import write_log
+from .config import coins_bought, client, TRAILING_TAKE_PROFIT, TRAILING_STOP_LOSS, USE_TRAILING_STOP_LOSS, LOG_TRADES, TESTNET
+from .get_price import get_price
+from .save_trade import write_log
+from .colors import txcolors
 
 
 def sell_coins():

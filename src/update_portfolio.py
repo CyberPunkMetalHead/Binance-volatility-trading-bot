@@ -4,7 +4,7 @@ This module adds every coin bought to our json portfolio file.
 
 import json
 
-from config import DEBUG, coins_bought_file_path, coins_bought, STOP_LOSS, TAKE_PROFIT
+from .config import DEBUG, coins_bought_file_path, coins_bought, STOP_LOSS, TAKE_PROFIT
 
 
 def update_portfolio(orders, last_price, volume):

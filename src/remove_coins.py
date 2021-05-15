@@ -4,7 +4,7 @@ This module removes coins from portfolio once the TP or SL has been reached.
 
 import json
 
-from src.config import coins_bought, coins_bought_file_path
+from .config import coins_bought, coins_bought_file_path
 
 
 def remove_from_portfolio(coins_sold):

@@ -6,11 +6,11 @@ threshold has been reached.
 import time
 from datetime import datetime, timedelta
 
-from config import PAIR_WITH, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, coins_bought, MAX_COINS
-from get_price import get_price
-from remove_coins import remove_from_portfolio
-from sell import sell_coins
-from src.colors import txcolors
+from .config import PAIR_WITH, TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE, coins_bought, MAX_COINS
+from .get_price import get_price
+from .remove_coins import remove_from_portfolio
+from .sell import sell_coins
+from .colors import txcolors
 
 
 def wait_for_price():

@@ -4,7 +4,7 @@ Module that logs all trades including PNL in a text file.
 
 from datetime import datetime
 
-from config import LOG_FILE
+from .config import LOG_FILE
 
 
 def write_log(logline):

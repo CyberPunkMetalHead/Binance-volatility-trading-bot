@@ -8,13 +8,13 @@ import time
 
 from binance.client import Client
 
-from helpers import handle_creds
-from helpers import parameters
+from .helpers import handle_creds
+from .helpers import parameters
 
 # Load arguments then parse settings
 args = parameters.parse_args()
 
-DEFAULT_CONFIG_FILE = '../config.yml'
+DEFAULT_CONFIG_FILE = 'config.yml'
 DEFAULT_CREDS_FILE = 'creds.yml'
 
 config_file = args.config if args.config else DEFAULT_CONFIG_FILE
@@ -67,6 +67,8 @@ if TESTNET:
 # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
 if CUSTOM_LIST:
     tickers = [line.strip() for line in open('../tickers.txt')]
+else:
+    tickers = None
 
 # try to load all the coins bought by the bot if the file exists and is not empty
 coins_bought = {}

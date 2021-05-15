@@ -3,8 +3,8 @@ This module converts the user-given volume from the PAIR_WITH coin in the coin
 to be bought.
 """
 
-from config import QUANTITY, client, DEBUG
-from wait_for_price import wait_for_price
+from .config import QUANTITY, client, DEBUG
+from .wait_for_price import wait_for_price
 
 
 def convert_volume():
