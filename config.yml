@@ -28,11 +28,11 @@ trading_options:
   # Maximum number of coins to hold; amount of money in live account needs to be at least QUANTITY * MAX_COINS
   MAX_COINS: 10
 
-  # the amount of time in MINUTES to keep a rolling window
-  TIME_DIFFERENCE: 2
+  # the amount of time in MINUTES to keep a rolling window; default: 3
+  TIME_DIFFERENCE: 3
 
-  # Number of times to check for TP/SL during each TIME_DIFFERENCE; minimum: 1, default: 60 (every 5s)
-  RECHECK_INTERVAL: 24
+  # Number of times to check for TP/SL during each TIME_DIFFERENCE; minimum: 1, default: 36 (every 5s)
+  RECHECK_INTERVAL: 36
 
   # the (positive) difference in % within a TIME_DIFFERENCE period of time that will trigger a buy operation
   CHANGE_IN_PRICE: 3

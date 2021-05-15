@@ -9,7 +9,7 @@ init()
 from binance.client import Client
 
 # used for dates
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import time
 
 # used to repeatedly execute the code
@@ -34,9 +34,32 @@ from helpers.handle_creds import (
 class txcolors:
     BUY = '\033[92m'
     WARNING = '\033[93m'
-    SELL = '\033[91m'
+    SELL_LOSS = '\033[91m'
+    SELL_PROFIT = '\033[32m'
+    DIM = '\033[2m\033[35m'
     DEFAULT = '\033[39m'
 
+# print with timestamps
+import sys
+old_out = sys.stdout
+class St_ampe_dOut:
+    """Stamped stdout."""
+    nl = True
+    def write(self, x):
+        """Write function overloaded."""
+        if x == '\n':
+            old_out.write(x)
+            self.nl = True
+        elif self.nl:
+            old_out.write(f'{txcolors.DIM}[{str(datetime.now().replace(microsecond=0))}]{txcolors.DEFAULT} {x}')
+            self.nl = False
+        else:
+            old_out.write(x)
+
+    def flush(self):
+        pass
+
+sys.stdout = St_ampe_dOut()
 
 def get_price(add_to_historical=True):
     '''Return the current price for all coins on binance'''
@@ -66,7 +89,7 @@ def wait_for_price():
     '''calls the initial price and ensures the correct amount of time has passed
     before reading the current price again'''
 
-    global historical_prices, hsp_head
+    global historical_prices, hsp_head, volatility_cooloff
 
     volatile_coins = {}
 
@@ -86,15 +109,19 @@ def wait_for_price():
         threshold_check = (-1.0 if min_price[coin]['time'] > max_price[coin]['time'] else 1.0) * (float(max_price[coin]['price']) - float(min_price[coin]['price'])) / float(min_price[coin]['price']) * 100
 
         # each coin with higher gains than our CHANGE_IN_PRICE is added to the volatile_coins dict if less than MAX_COINS is not reached.
-        if threshold_check > CHANGE_IN_PRICE:
-            # TODO: also check if already triggered this within the last TIME_DIFFERENCE to avoid spam
-            if len(coins_bought) < MAX_COINS:
-                volatile_coins[coin] = threshold_check
-                volatile_coins[coin] = round(volatile_coins[coin], 3)
-                print(f'{coin} has gained {volatile_coins[coin]}% within the last {TIME_DIFFERENCE} minutes, calculating volume in {PAIR_WITH}')
+        if threshold_check >= CHANGE_IN_PRICE:
+            if coin not in volatility_cooloff:
+                volatility_cooloff[coin] = datetime.now() - timedelta(minutes=TIME_DIFFERENCE)
 
-            else:
-                print(f'{txcolors.WARNING}{coin} has gained {threshold_check}% within the last {TIME_DIFFERENCE} minutes, but you are holding max number of coins{txcolors.DEFAULT}')
+            # only include coin as volatile if it hasn't been picked up in the last TIME_DIFFERENCE minutes already
+            if datetime.now() >= volatility_cooloff[coin] + timedelta(minutes=TIME_DIFFERENCE):
+                if len(coins_bought) < MAX_COINS:
+                    volatility_cooloff[coin] = datetime.now()
+                    volatile_coins[coin] = round(threshold_check, 3)
+
+                    print(f'{coin} has gained {volatile_coins[coin]}% within the last {TIME_DIFFERENCE} minutes, calculating volume in {PAIR_WITH}')
+                else:
+                    print(f'{txcolors.WARNING}{coin} has gained {threshold_check}% within the last {TIME_DIFFERENCE} minutes, but you are holding max number of coins{txcolors.DEFAULT}')
 
     return volatile_coins, len(volatile_coins), historical_prices[hsp_head]
 
@@ -232,7 +259,7 @@ def sell_coins():
 
         # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case 
         if float(last_price[coin]['price']) < SL or (float(last_price[coin]['price']) > TP and not USE_TRAILING_STOP_LOSS):
-            print(f"{txcolors.SELL}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange:.2f}%{txcolors.DEFAULT}")
+            print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange:.2f}%{txcolors.DEFAULT}")
 
             # try to create a real order
             try:
@@ -260,9 +287,9 @@ def sell_coins():
                     write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%")
             continue
 
-        # no action
-        if hsp_head % 10 == 0:
-            print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {PriceChange:.2f}% ')
+        # no action; print once every TIME_DIFFERENCE
+        if hsp_head == 1:
+            print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange:.2f}%{txcolors.DEFAULT}')
 
     return coins_sold
 
@@ -369,6 +396,9 @@ if __name__ == '__main__':
     # rolling window of prices; cyclical queue
     historical_prices = [None] * (TIME_DIFFERENCE * RECHECK_INTERVAL)
     hsp_head = -1
+
+    # prevent including a coin in volatile_coins if it has already appeared there less than TIME_DIFFERENCE minutes ago
+    volatility_cooloff = {}
 
     # use separate files for testing and live trading
     if TEST_MODE:
