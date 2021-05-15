@@ -29,10 +29,10 @@ trading_options:
   MAX_COINS: 10
 
   # the amount of time in MINUTES to keep a rolling window
-  TIME_DIFFERENCE: 5
+  TIME_DIFFERENCE: 2
 
   # Number of times to check for TP/SL during each TIME_DIFFERENCE; minimum: 1, default: 60 (every 5s)
-  RECHECK_INTERVAL: 60
+  RECHECK_INTERVAL: 24
 
   # the (positive) difference in % within a TIME_DIFFERENCE period of time that will trigger a buy operation
   CHANGE_IN_PRICE: 3

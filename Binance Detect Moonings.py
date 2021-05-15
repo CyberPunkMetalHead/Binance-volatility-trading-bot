@@ -76,40 +76,25 @@ def wait_for_price():
 
     # retreive latest prices
     get_price()
-    # infoChange = -100.00
-    # infoCoin = 'none'
-    # infoStart = 0.00
-    # infoStop = 0.00
 
     # calculate the difference in prices
     for coin in historical_prices[hsp_head]:
         # minimum and maximum prices over time period
-        min_price = min(historical_prices, key = lambda x: x[coin]['price'])
-        max_price = max(historical_prices, key = lambda x: x[coin]['price'])
+        min_price = min(historical_prices, key = lambda x: float("inf") if x is None else float(x[coin]['price']))
+        max_price = max(historical_prices, key = lambda x: -1 if x is None else float(x[coin]['price']))
 
         threshold_check = (-1.0 if min_price[coin]['time'] > max_price[coin]['time'] else 1.0) * (float(max_price[coin]['price']) - float(min_price[coin]['price'])) / float(min_price[coin]['price']) * 100
 
-        # if threshold_check > infoChange:
-        #     infoChange = threshold_check
-        #     infoCoin = coin
-        #     infoStart = initial_price[coin]['price']
-        #     infoStop = last_price[coin]['price']
-
         # each coin with higher gains than our CHANGE_IN_PRICE is added to the volatile_coins dict if less than MAX_COINS is not reached.
         if threshold_check > CHANGE_IN_PRICE:
+            # TODO: also check if already triggered this within the last TIME_DIFFERENCE to avoid spam
             if len(coins_bought) < MAX_COINS:
                 volatile_coins[coin] = threshold_check
                 volatile_coins[coin] = round(volatile_coins[coin], 3)
-                print(f'{coin} has gained {volatile_coins[coin]}% in the last {TIME_DIFFERENCE} seconds, calculating volume in {PAIR_WITH}')
+                print(f'{coin} has gained {volatile_coins[coin]}% within the last {TIME_DIFFERENCE} minutes, calculating volume in {PAIR_WITH}')
 
             else:
                 print(f'{txcolors.WARNING}{coin} has gained {threshold_check}% within the last {TIME_DIFFERENCE} minutes, but you are holding max number of coins{txcolors.DEFAULT}')
-
-    # Print more info if there are no volatile coins this iteration
-    # if infoChange < CHANGE_IN_PRICE:
-    #     print(f'No coins moved more than {CHANGE_IN_PRICE}% in the last {TIME_DIFFERENCE} second(s)')
-
-    # print(f'Max movement {float(infoChange):.2f}% by {infoCoin} from {float(infoStart):.4f} to {float(infoStop):.4f}')
 
     return volatile_coins, len(volatile_coins), historical_prices[hsp_head]
 
@@ -220,6 +205,8 @@ def buy():
 def sell_coins():
     '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
 
+    global hsp_head
+
     last_price = get_price(False) # don't populate rolling window
     coins_sold = {}
 
@@ -235,7 +222,7 @@ def sell_coins():
 
         # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
         if float(last_price[coin]['price']) > TP and USE_TRAILING_STOP_LOSS:
-            print("TP reached, adjusting TP and SL accordingly to lock-in profit")
+            if DEBUG: print("TP reached, adjusting TP and SL accordingly to lock-in profit")
             
             # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
             coins_bought[coin]['take_profit'] += TRAILING_TAKE_PROFIT
@@ -274,7 +261,8 @@ def sell_coins():
             continue
 
         # no action
-        print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {PriceChange:.2f}% ')
+        if hsp_head % 10 == 0:
+            print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {PriceChange:.2f}% ')
 
     return coins_sold
 
