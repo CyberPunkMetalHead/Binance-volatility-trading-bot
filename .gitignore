@@ -1,10 +1,7 @@
+# Don't upload any dotfolders
+.*/
+
 creds.yml
 
-# Dont upload json files
+# Don't upload json files
 *.json
-
-# Virtual environment
-.venv
-
-# IDE settings
-.vscode
