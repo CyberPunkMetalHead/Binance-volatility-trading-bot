@@ -2,9 +2,13 @@
 script_options:
   # Switch between testnet and mainnet
   # Setting this to False will use REAL funds, use at your own risk
-  TESTNET: True
+  
+  TESTNET: True 
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
+  
+  # Time to wait before we startup
+  PROD_WAIT_TIME: 30
 
 
 # These options apply to the trading methods the script executes

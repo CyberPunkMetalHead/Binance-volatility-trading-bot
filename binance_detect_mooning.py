@@ -1,32 +1,21 @@
-# use for environment variables
-import os
-
-# Needed for colorful console output Install with: python3 -m pip install colorama (Mac/Linux) or pip install colorama (PC)
-from colorama import init
-init()
-
-# needed for the binance API and websockets
-from binance.client import Client
-
-# used for dates
 from datetime import datetime, timedelta
+import os # file lookups
 import time
 
-# used to repeatedly execute the code
-from itertools import count
-
-# used to store trades and sell assets
-import json
+# third party modules
+from binance.client import Client
+from colorama import init # pretty output
 
 
-# Load helper modules
+# Module for loading creds and config
 from helpers.parameters import (
+    load_creds, get_creds_for_env,
     parse_args, load_config
 )
 
-# Load creds modules
-from helpers.handle_creds import (
-    load_correct_creds
+# Modules for reading and writing files
+from helpers.file_operations import (
+    write_log, update_coins_json, load_json_file,
 )
 
 
@@ -163,7 +152,7 @@ def buy():
         if coin not in coins_bought:
             print(f"{txcolors.BUY}Preparing to buy {volume[coin]} {coin}{txcolors.DEFAULT}")
 
-            if TESTNET :
+            if TESTNET:
                 # create test order before pushing an actual order
                 test_order = client.create_test_order(symbol=coin, side='BUY', type='MARKET', quantity=volume[coin])
 
@@ -196,7 +185,7 @@ def buy():
 
                     # Log trade
                     if LOG_TRADES:
-                        write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
+                        write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}", LOG_FILE)
 
 
         else:
@@ -224,14 +213,14 @@ def sell_coins():
         # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
         if float(last_price[coin]['price']) > TP and USE_TRAILING_STOP_LOSS:
             print("TP reached, adjusting TP and SL accordingly to lock-in profit")
-            
+
             # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
             coins_bought[coin]['take_profit'] += TRAILING_TAKE_PROFIT
             coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
 
             continue
 
-        # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case 
+        # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
         if float(last_price[coin]['price']) < SL or (float(last_price[coin]['price']) > TP and not USE_TRAILING_STOP_LOSS):
             print(f"{txcolors.SELL}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange:.2f}%{txcolors.DEFAULT}")
 
@@ -261,7 +250,7 @@ def sell_coins():
 
                 if LOG_TRADES:
                     profit = (LastPrice - BuyPrice) * coins_sold[coin]['volume']
-                    write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%")
+                    write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%", LOG_FILE)
             continue
 
         # no action
@@ -286,8 +275,9 @@ def update_portfolio(orders, last_price, volume):
             }
 
         # save the coins in a json file in the same directory
-        with open(coins_bought_file_path, 'w') as file:
-            json.dump(coins_bought, file, indent=4)
+        update_coins_json(coins_bought_file_path, coins_bought, 'w')
+        # with open(coins_bought_file_path, 'w') as file:
+        #     json.dump(coins_bought, file, indent=4)
 
         print(f'Order with id {orders[coin][0]["orderId"]} placed and saved to file')
 
@@ -297,104 +287,74 @@ def remove_from_portfolio(coins_sold):
     for coin in coins_sold:
         coins_bought.pop(coin)
 
-    with open(coins_bought_file_path, 'w') as file:
-        json.dump(coins_bought, file, indent=4)
-
-
-def write_log(logline):
-    timestamp = datetime.now().strftime("%d/%m %H:%M:%S")
-    with open(LOG_FILE,'a+') as f:
-        f.write(timestamp + ' ' + logline + '\n')
+    update_coins_json(coins_bought_file_path, coins_bought, 'w')
+    # with open(coins_bought_file_path, 'w') as file:
+    #     json.dump(coins_bought, file, indent=4)
 
 
 
 if __name__ == '__main__':
+    init() # colorama
     # Load arguments then parse settings
     args = parse_args()
-    
+
     DEFAULT_CONFIG_FILE = 'config.yml'
     DEFAULT_CREDS_FILE = 'creds.yml'
 
     config_file = args.config if args.config else DEFAULT_CONFIG_FILE
     creds_file = args.creds if args.creds else DEFAULT_CREDS_FILE
     parsed_config = load_config(config_file)
-    parsed_creds = load_config(creds_file)
-    
-    
+    parsed_creds = load_creds(creds_file)
 
     # Default no debugging
     DEBUG = False
 
-    # Load system vars
-    TESTNET = parsed_config['script_options']['TESTNET']
-    LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
-    LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
-    DEBUG_SETTING = parsed_config['script_options'].get('DEBUG')
+    (PROD_WAIT_TIME, TESTNET, LOG_TRADES, LOG_FILE, DEBUG_SETTING,
+    PAIR_WITH, QUANTITY, MAX_COINS, FIATS,
+    TIME_DIFFERENCE, RECHECK_INTERVAL, CHANGE_IN_PRICE,
+    STOP_LOSS, TAKE_PROFIT,CUSTOM_LIST, USE_TRAILING_STOP_LOSS,
+    TRAILING_STOP_LOSS, TRAILING_TAKE_PROFIT) = load_config(config_file)
 
-    # Load trading vars
-    PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
-    QUANTITY = parsed_config['trading_options']['QUANTITY']
-    MAX_COINS = parsed_config['trading_options']['MAX_COINS']
-    FIATS = parsed_config['trading_options']['FIATS']
-    TIME_DIFFERENCE = parsed_config['trading_options']['TIME_DIFFERENCE']
-    RECHECK_INTERVAL = parsed_config['trading_options']['RECHECK_INTERVAL']
-    CHANGE_IN_PRICE = parsed_config['trading_options']['CHANGE_IN_PRICE']
-    STOP_LOSS = parsed_config['trading_options']['STOP_LOSS']
-    TAKE_PROFIT = parsed_config['trading_options']['TAKE_PROFIT']
-    CUSTOM_LIST = parsed_config['trading_options']['CUSTOM_LIST']
-    USE_TRAILING_STOP_LOSS = parsed_config['trading_options']['USE_TRAILING_STOP_LOSS']
-    TRAILING_STOP_LOSS = parsed_config['trading_options']['TRAILING_STOP_LOSS']
-    TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
-    
+    # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
+    if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
+
     if DEBUG_SETTING or args.debug:
         DEBUG = True
 
     # Load creds for correct envionment
     # If testnet true in config.yml, load test keys
-    access_key, secret_key = load_correct_creds(parsed_creds, TESTNET)
-    
-    if DEBUG: 
-        print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
-        print(f'Your credentials have been loaded from {creds_file}')
-            
-    
+    access_key, secret_key = get_creds_for_env(parsed_creds, TESTNET)
+
+    # Default file path
+    coins_bought_file_path = 'coins_bought.json'
+
     # Authenticate with the client
     if TESTNET:
+        coins_bought_file_path = 'testnet_' + coins_bought_file_path
         client = Client(access_key, secret_key)
 
-        # The API URL needs to be manually changed in the library to work on the TESTNET
+        # API URL needs to be manually changed for TESTNET
         client.API_URL = 'https://testnet.binance.vision/api'
 
     else:
+        print('WARNING: You are using the Mainnet and live funds.')
+        print(f'Waiting {PROD_WAIT_TIME} seconds as a security measure\n\n')
+        time.sleep(PROD_WAIT_TIME)
         client = Client(access_key, secret_key)
 
-        # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
-    if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
 
     # try to load all the coins bought by the bot if the file exists and is not empty
     coins_bought = {}
-
-    # path to the saved coins_bought file
-    coins_bought_file_path = 'coins_bought.json'
-
-    # use separate files for testnet and live
-    if TESTNET:
-        coins_bought_file_path = 'testnet_' + coins_bought_file_path
-
     # if saved coins_bought json file exists and it's not empty then load it
     if os.path.isfile(coins_bought_file_path) and os.stat(coins_bought_file_path).st_size!= 0:
-        with open(coins_bought_file_path) as file:
-                coins_bought = json.load(file)
+        coins_bought = load_json_file(coins_bought_file_path)
+        # with open(coins_bought_file_path) as file:
+        #         coins_bought = json.load(file)
 
-    print('Press Ctrl-Q to stop the script')
-
-    if not TESTNET:
-        print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
-        time.sleep(30)
-
+    print('Press Ctrl-Q or Keyboard Interupt to stop the script')
     while True:
         orders, last_price, volume = buy()
         update_portfolio(orders, last_price, volume)
         coins_sold = sell_coins()
         remove_from_portfolio(coins_sold)
-        
+
