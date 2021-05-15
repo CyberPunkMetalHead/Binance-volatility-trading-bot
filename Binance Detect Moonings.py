@@ -18,91 +18,6 @@ from itertools import count
 # used to store trades and sell assets
 import json
 
-# Switch between testnet and mainnet
-# Setting this to False will use REAL funds, use at your own risk
-# Define your API keys below in order for the toggle to work
-TESTNET = True
-
-
-# Get binance key and secret for TEST and MAINNET
-# The keys below are pulled from environment variables using os.getenv
-# Simply remove this and use the following format instead: api_key_test = 'YOUR_API_KEY'
-api_key_test = os.getenv('binance_api_stalkbot_testnet')
-api_secret_test = os.getenv('binance_secret_stalkbot_testnet')
-
-api_key_live = os.getenv('binance_api_stalkbot_live')
-api_secret_live = os.getenv('binance_secret_stalkbot_live')
-
-
-# Authenticate with the client
-if TESTNET:
-    client = Client(api_key_test, api_secret_test)
-
-    # The API URL needs to be manually changed in the library to work on the TESTNET
-    client.API_URL = 'https://testnet.binance.vision/api'
-
-else:
-    client = Client(api_key_live, api_secret_live)
-
-
-####################################################
-#                   USER INPUTS                    #
-# You may edit to adjust the parameters of the bot #
-####################################################
-
-
-# select what to pair the coins to and pull all coins paired with PAIR_WITH
-PAIR_WITH = 'USDT'
-
-# Define the size of each trade, by default in USDT
-QUANTITY = 100
-
-# Define max numbers of coins to hold; amount of money in live account needs to be at least QUANTITY * MAX_COINS
-MAX_COINS = 10
-
-# List of pairs to exclude
-# by default we're excluding the most popular fiat pairs
-# and some margin keywords, as we're only working on the SPOT account
-FIATS = ['EURUSDT', 'GBPUSDT', 'JPYUSDT', 'USDUSDT', 'DOWN', 'UP']
-
-# the amount of time in MINUTES to calculate the difference from the current price
-TIME_DIFFERENCE = 5
-
-# Number of times to check for TP/SL during each TIME_DIFFERENCE; minimum: 1, default: 60 (every 5s)
-RECHECK_INTERVAL = 60
-
-# the (positive) difference in % within a TIME_DIFFERENCE period of time that will trigger a buy operation
-CHANGE_IN_PRICE = 3
-
-# define in % when to sell a coin that's not making a profit
-STOP_LOSS = 2
-
-# define in % when to take profit on a profitable coin
-TAKE_PROFIT = 4
-
-# whether to use trailing stop loss or not; default is True
-USE_TRAILING_STOP_LOSS = True
-
-# when hit TAKE_PROFIT, move STOP_LOSS to TRAILING_STOP_LOSS percentage points below TAKE_PROFIT hence locking in profit
-# when hit TAKE_PROFIT, move TAKE_PROFIT up by TRAILING_TAKE_PROFIT percentage points
-TRAILING_STOP_LOSS = 2
-TRAILING_TAKE_PROFIT = 2
-
-# Use custom tickers.txt list for filtering pairs
-CUSTOM_LIST = False
-
-# Use log file for trades
-LOG_TRADES = True
-LOG_FILE = 'trades.txt'
-
-# Debug for additional console output
-DEBUG = True
-
-
-####################################################
-#                END OF USER INPUTS                #
-#                  Edit with care                  #
-####################################################
 
 # Load helper modules
 from helpers.parameters import (
@@ -122,27 +37,6 @@ class txcolors:
     SELL = '\033[91m'
     DEFAULT = '\033[39m'
 
-# Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
-if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
-
-# try to load all the coins bought by the bot if the file exists and is not empty
-coins_bought = {}
-
-# path to the saved coins_bought file
-coins_bought_file_path = 'coins_bought.json'
-
-# use separate files for testnet and live
-if TESTNET:
-    coins_bought_file_path = 'testnet_' + coins_bought_file_path
-
-# if saved coins_bought json file exists and it's not empty then load it
-if os.path.isfile(coins_bought_file_path) and os.stat(coins_bought_file_path).st_size!= 0:
-    with open(coins_bought_file_path) as file:
-            coins_bought = json.load(file)
-
-# rolling window of prices; cyclical queue
-historical_prices = [None] * (TIME_DIFFERENCE * RECHECK_INTERVAL)
-hsp_head = -1
 
 def get_price(add_to_historical=True):
     '''Return the current price for all coins on binance'''
@@ -485,6 +379,10 @@ if __name__ == '__main__':
 
     # path to the saved coins_bought file
     coins_bought_file_path = 'coins_bought.json'
+
+    # rolling window of prices; cyclical queue
+    historical_prices = [None] * (TIME_DIFFERENCE * RECHECK_INTERVAL)
+    hsp_head = -1
 
     # use separate files for testnet and live
     if TESTNET:
