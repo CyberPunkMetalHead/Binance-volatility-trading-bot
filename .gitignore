@@ -1,1 +1,5 @@
+.gitignore
+creds.yml
+helpers/__pycache__/handle_creds.cpython-39.pyc
+helpers/__pycache__/parameters.cpython-39.pyc
 testnet_coins_bought.json
