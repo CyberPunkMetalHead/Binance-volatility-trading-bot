@@ -2,7 +2,7 @@
 script_options:
   # Switch between testnet and mainnet
   # Setting this to False will use REAL funds, use at your own risk
-  TESTNET: False
+  TESTNET: True
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
 
