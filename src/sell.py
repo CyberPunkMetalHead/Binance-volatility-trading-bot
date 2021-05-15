@@ -1,11 +1,12 @@
 """
 This module handles the sell logic of our bot.
 """
+from binance.helpers import round_step_size
 
+from .colors import txcolors
 from .config import coins_bought, client, TRAILING_TAKE_PROFIT, TRAILING_STOP_LOSS, USE_TRAILING_STOP_LOSS, LOG_TRADES, TESTNET
 from .get_price import get_price
 from .save_trade import write_log
-from .colors import txcolors
 
 
 def sell_coins():
@@ -19,9 +20,8 @@ def sell_coins():
         buy_price = float(coins_bought[coin]['bought_at'])
         price_change = float((last_price - buy_price) / buy_price * 100)
 
-        # define stop loss and take profit
-        TP = buy_price + (buy_price * coins_bought[coin]['take_profit']) / 100
-        SL = buy_price + (buy_price * coins_bought[coin]['stop_loss']) / 100
+        TP = buy_price + (buy_price * coins_bought[coin].get('take_profit', 1)) / 100
+        SL = buy_price + (buy_price * coins_bought[coin].get('stop_loss', 1)) / 100
 
         # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
         if last_price > TP and USE_TRAILING_STOP_LOSS:
@@ -43,16 +43,26 @@ def sell_coins():
 
             # try to create a real order if the test orders did not raise an exception
             try:
+                try:
+                    rounded_amount = round_step_size(coins_bought[coin]['volume'], coins_bought[coin]['step_size'])
+                except:
+                    tick_size = float(
+                        next(
+                            filter(
+                                lambda f: f['filterType'] == 'LOT_SIZE',
+                                client.get_symbol_info(coin)['filters']
+                            )
+                        )['stepSize']
+                    )
+                    rounded_amount = round_step_size(coins_bought[coin]['volume'], tick_size)
 
-                sell_coins_limit = client.create_order(
+                client.create_order(
                     symbol=coin,
                     side='SELL',
                     type='MARKET',
-                    quantity=coins_bought[coin]['volume']
-
+                    quantity=rounded_amount,
                 )
 
-            # error handling here in case position cannot be placed
             except Exception as e:
                 print(e)
 
