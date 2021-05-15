@@ -38,3 +38,4 @@ ujson==4.0.2
 urllib3==1.26.4
 virtualenv==20.4.6
 zope.interface==5.4.0
+PyYAML==5.4.1
