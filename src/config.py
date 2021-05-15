@@ -1,28 +1,26 @@
-# This module handles and stores and handles all the configuration options
+"""
+This module handles and stores and handles all the configuration options.
+"""
 
-import yaml
-import os
 import json
+import os
 import time
 
-# needed for the binance API and websockets
 from binance.client import Client
 
-# import local helper modules
-from helpers import parameters as prm
-from helpers import handle_creds as hcred
+from helpers import handle_creds
+from helpers import parameters
 
 # Load arguments then parse settings
-args = prm.parse_args()
+args = parameters.parse_args()
 
-DEFAULT_CONFIG_FILE = 'config.yml'
+DEFAULT_CONFIG_FILE = '../config.yml'
 DEFAULT_CREDS_FILE = 'creds.yml'
 
 config_file = args.config if args.config else DEFAULT_CONFIG_FILE
 creds_file = args.creds if args.creds else DEFAULT_CREDS_FILE
-parsed_config = prm.load_config(config_file)
-parsed_creds = prm.load_config(creds_file)
-
+parsed_config = parameters.load_config(config_file)
+parsed_creds = parameters.load_config(creds_file)
 
 # Default no debugging
 DEBUG = False
@@ -48,30 +46,27 @@ USE_TRAILING_STOP_LOSS = parsed_config['trading_options']['USE_TRAILING_STOP_LOS
 TRAILING_STOP_LOSS = parsed_config['trading_options']['TRAILING_STOP_LOSS']
 TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
 
-
 if DEBUG_SETTING or args.debug:
     DEBUG = True
 
-# Load creds for correct envionment
+# Load credentials for correct environment
 # If testnet true in config.yml, load test keys
-access_key, secret_key = hcred.load_correct_creds(parsed_creds, TESTNET)
+access_key, secret_key = handle_creds.load_correct_creds(parsed_creds, TESTNET)
 
 if DEBUG:
     print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
     print(f'Your credentials have been loaded from {creds_file}')
 
 # Authenticate with the client
-if TESTNET:
-    client = Client(access_key, secret_key)
+client = Client(access_key, secret_key)
 
+if TESTNET:
     # The API URL needs to be manually changed in the library to work on the TESTNET
     client.API_URL = 'https://testnet.binance.vision/api'
 
-else:
-    client = Client(access_key, secret_key)
-
 # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
-if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
+if CUSTOM_LIST:
+    tickers = [line.strip() for line in open('../tickers.txt')]
 
 # try to load all the coins bought by the bot if the file exists and is not empty
 coins_bought = {}
@@ -84,9 +79,9 @@ if TESTNET:
     coins_bought_file_path = 'testnet_' + coins_bought_file_path
 
 # if saved coins_bought json file exists and it's not empty then load it
-if os.path.isfile(coins_bought_file_path) and os.stat(coins_bought_file_path).st_size!= 0:
+if os.path.isfile(coins_bought_file_path) and os.stat(coins_bought_file_path).st_size != 0:
     with open(coins_bought_file_path) as file:
-            coins_bought = json.load(file)
+        coins_bought = json.load(file)
 
 print('Press Ctrl-Q to stop the script')
 
