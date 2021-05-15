@@ -26,7 +26,7 @@ trading_options:
     - UP
 
   # Maximum number of coins to hold
-  MAX_COINS: 20
+  MAX_COINS: 10
 
   # the amount of time in SECONDS to calculate the difference from the current price
   TIME_DIFFERENCE: 30
