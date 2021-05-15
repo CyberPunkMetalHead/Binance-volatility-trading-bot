@@ -6,6 +6,10 @@ script_options:
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
 
+  # Setting this to support telegram bot
+  TELEGRAM_LOGGING: False
+  TELEGRAM_CHANNEL_ID: 1312312312312
+  TELEGRAM_TOKEN: 1231231:SDASDADKMKMCKCMKMCMKMEC
 
 # These options apply to the trading methods the script executes
 trading_options:

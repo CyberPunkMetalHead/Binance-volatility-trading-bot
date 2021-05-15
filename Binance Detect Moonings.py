@@ -29,6 +29,7 @@ from helpers.handle_creds import (
     load_correct_creds
 )
 
+import requests
 
 # for colourful logging to the console
 class txcolors:
@@ -36,6 +37,18 @@ class txcolors:
     WARNING = '\033[93m'
     SELL = '\033[91m'
     DEFAULT = '\033[39m'
+
+
+def log(*args):
+    print(' '.join(map(str, args)))
+    if TELEGRAM_LOGGING:
+        payload = {
+                'chat_id': TELEGRAM_CHANNEL_ID,
+                'text': ' '.join(map(str, args)),
+                'parse_mode': 'HTML'
+            }
+        return requests.post("https://api.telegram.org/bot{token}/sendMessage".format(token=TELEGRAM_TOKEN), data=payload).content
+    # print(' '.join(map(str, args)))
 
 
 def get_price():
@@ -66,14 +79,14 @@ def wait_for_price():
     while initial_price['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(seconds=TIME_DIFFERENCE):
         i=0
         while i < RECHECK_INTERVAL:
-            print(f'checking TP/SL...')
+            log(f'checking TP/SL...')
             coins_sold = sell_coins()
             remove_from_portfolio(coins_sold)
             time.sleep((TIME_DIFFERENCE/RECHECK_INTERVAL))
             i += 1
             # let's wait here until the time passess...
 
-        print(f'not enough time has passed yet...')
+        log(f'not enough time has passed yet...')
 
     else:
         last_price = get_price()
@@ -97,16 +110,16 @@ def wait_for_price():
                 if len(coins_bought) < MAX_COINS:
                     volatile_coins[coin] = threshold_check
                     volatile_coins[coin] = round(volatile_coins[coin], 3)
-                    print(f'{coin} has gained {volatile_coins[coin]}% in the last {TIME_DIFFERENCE} seconds, calculating volume in {PAIR_WITH}')
+                    log(f'{coin} has gained {volatile_coins[coin]}% in the last {TIME_DIFFERENCE} seconds, calculating volume in {PAIR_WITH}')
 
                 else:
-                    print(f'{txcolors.WARNING}{coin} has gained {threshold_check}% in the last {TIME_DIFFERENCE} seconds, but you are holding max number of coins{txcolors.DEFAULT}')
+                    log(f'{txcolors.WARNING}{coin} has gained {threshold_check}% in the last {TIME_DIFFERENCE} seconds, but you are holding max number of coins{txcolors.DEFAULT}')
 
         # Print more info if there are no volatile coins this iteration
         if infoChange < CHANGE_IN_PRICE:
-                print(f'No coins moved more than {CHANGE_IN_PRICE}% in the last {TIME_DIFFERENCE} second(s)')
+                log(f'No coins moved more than {CHANGE_IN_PRICE}% in the last {TIME_DIFFERENCE} second(s)')
 
-        print(f'Max movement {float(infoChange):.2f}% by {infoCoin} from {float(infoStart):.4f} to {float(infoStop):.4f}')
+        log(f'Max movement {float(infoChange):.2f}% by {infoCoin} from {float(infoStart):.4f} to {float(infoStop):.4f}')
 
         return volatile_coins, len(volatile_coins), last_price
 
@@ -161,7 +174,7 @@ def buy():
 
         # only buy if the there are no active trades on the coin
         if coin not in coins_bought:
-            print(f"{txcolors.BUY}Preparing to buy {volume[coin]} {coin}{txcolors.DEFAULT}")
+            log(f"{txcolors.BUY}Preparing to buy {volume[coin]} {coin}{txcolors.DEFAULT}")
 
             if TESTNET :
                 # create test order before pushing an actual order
@@ -178,7 +191,7 @@ def buy():
 
             # error handling here in case position cannot be placed
             except Exception as e:
-                print(e)
+                log(e)
 
             # run the else block if the position has been placed and return order info
             else:
@@ -186,13 +199,13 @@ def buy():
 
                 # binance sometimes returns an empty list, the code will wait here until binance returns the order
                 while orders[coin] == []:
-                    print('Binance is being slow in returning the order, calling the API again...')
+                    log('Binance is being slow in returning the order, calling the API again...')
 
                     orders[coin] = client.get_all_orders(symbol=coin, limit=1)
                     time.sleep(1)
 
                 else:
-                    print('Order returned, saving order to file')
+                    log('Order returned, saving order to file')
 
                     # Log trade
                     if LOG_TRADES:
@@ -200,7 +213,7 @@ def buy():
 
 
         else:
-            print(f'Signal detected, but there is already an active trade on {coin}')
+            log(f'Signal detected, but there is already an active trade on {coin}')
 
     return orders, last_price, volume
 
@@ -223,7 +236,7 @@ def sell_coins():
 
         # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
         if float(last_price[coin]['price']) > TP and USE_TRAILING_STOP_LOSS:
-            print("TP reached, adjusting TP and SL accordingly to lock-in profit")
+            log("TP reached, adjusting TP and SL accordingly to lock-in profit")
             
             # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
             coins_bought[coin]['take_profit'] += TRAILING_TAKE_PROFIT
@@ -233,7 +246,7 @@ def sell_coins():
 
         # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case 
         if float(last_price[coin]['price']) < SL or (float(last_price[coin]['price']) > TP and not USE_TRAILING_STOP_LOSS):
-            print(f"{txcolors.SELL}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange:.2f}%{txcolors.DEFAULT}")
+            log(f"{txcolors.SELL}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange:.2f}%{txcolors.DEFAULT}")
 
             if TESTNET :
                 # create test order before pushing an actual order
@@ -252,7 +265,7 @@ def sell_coins():
 
             # error handling here in case position cannot be placed
             except Exception as e:
-                print(e)
+                log(e)
 
             # run the else block if coin has been sold and create a dict for each coin sold
             else:
@@ -265,14 +278,14 @@ def sell_coins():
             continue
 
         # no action
-        print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {PriceChange:.2f}% ')
+        log(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {PriceChange:.2f}% ')
 
     return coins_sold
 
 
 def update_portfolio(orders, last_price, volume):
     '''add every coin bought to our portfolio for tracking/selling later'''
-    if DEBUG: print(orders)
+    if DEBUG: log(orders)
     for coin in orders:
 
         coins_bought[coin] = {
@@ -289,7 +302,7 @@ def update_portfolio(orders, last_price, volume):
         with open(coins_bought_file_path, 'w') as file:
             json.dump(coins_bought, file, indent=4)
 
-        print(f'Order with id {orders[coin][0]["orderId"]} placed and saved to file')
+        log(f'Order with id {orders[coin][0]["orderId"]} placed and saved to file')
 
 
 def remove_from_portfolio(coins_sold):
@@ -330,6 +343,10 @@ if __name__ == '__main__':
     LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
     LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
     DEBUG_SETTING = parsed_config['script_options'].get('DEBUG')
+    # Telegram Bot
+    TELEGRAM_LOGGING = parsed_config['script_options']['TELEGRAM_LOGGING']
+    TELEGRAM_CHANNEL_ID = parsed_config['script_options']['TELEGRAM_CHANNEL_ID']
+    TELEGRAM_TOKEN = parsed_config['script_options']['TELEGRAM_TOKEN']
 
     # Load trading vars
     PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
@@ -345,7 +362,7 @@ if __name__ == '__main__':
     USE_TRAILING_STOP_LOSS = parsed_config['trading_options']['USE_TRAILING_STOP_LOSS']
     TRAILING_STOP_LOSS = parsed_config['trading_options']['TRAILING_STOP_LOSS']
     TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
-    
+
     if DEBUG_SETTING or args.debug:
         DEBUG = True
 
@@ -354,8 +371,8 @@ if __name__ == '__main__':
     access_key, secret_key = load_correct_creds(parsed_creds, TESTNET)
     
     if DEBUG: 
-        print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
-        print(f'Your credentials have been loaded from {creds_file}')
+        log(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
+        log(f'Your credentials have been loaded from {creds_file}')
             
     
     # Authenticate with the client
@@ -386,10 +403,10 @@ if __name__ == '__main__':
         with open(coins_bought_file_path) as file:
                 coins_bought = json.load(file)
 
-    print('Press Ctrl-Q to stop the script')
+    log('Press Ctrl-Q to stop the script')
 
     if not TESTNET:
-        print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
+        log('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
         time.sleep(30)
 
     while True:
@@ -397,4 +414,3 @@ if __name__ == '__main__':
         update_portfolio(orders, last_price, volume)
         coins_sold = sell_coins()
         remove_from_portfolio(coins_sold)
-        
