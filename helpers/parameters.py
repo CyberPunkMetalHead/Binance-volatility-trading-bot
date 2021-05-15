@@ -1,6 +1,7 @@
 import yaml
 import argparse
-DEFAULT_SETTINGS_FILE = 'settings.json'
+
+DEFAULT_SETTINGS_FILE = "settings.json"
 
 
 def load_config(file):
@@ -10,7 +11,7 @@ def load_config(file):
 
 def parse_args():
     x = argparse.ArgumentParser()
-    x.add_argument('--debug', '-d', help="extra logging", action='store_true')
-    x.add_argument('--config', '-c', help="Path to config.yml")
-    x.add_argument('--creds', '-u', help="Path to creds file")
+    x.add_argument("--debug", "-d", help="extra logging", action="store_true")
+    x.add_argument("--config", "-c", help="Path to config.yml")
+    x.add_argument("--creds", "-u", help="Path to creds file")
     return x.parse_args()
