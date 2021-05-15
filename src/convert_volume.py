@@ -1,13 +1,17 @@
-# This module converts the user-given volume from the PAIR_WITH coin in the coin
-# to be bought
+"""
+This module converts the user-given volume from the PAIR_WITH coin in the coin
+to be bought.
+"""
 
-# import local dependencies
+from config import QUANTITY, client, DEBUG
 from wait_for_price import wait_for_price
-from config import QUANTITY
 
 
 def convert_volume():
-    '''Converts the volume given in QUANTITY from USDT to the each coin's volume'''
+    """
+    Converts the volume given in QUANTITY from USDT to the respective coin's
+    volume.
+    """
 
     volatile_coins, number_of_coins, last_price = wait_for_price()
     lot_size = {}
@@ -15,9 +19,9 @@ def convert_volume():
 
     for coin in volatile_coins:
 
-        # Find the correct step size for each coin
-        # max accuracy for BTC for example is 6 decimal points
-        # while XRP is only 1
+        # Find the correct step size for each coin.
+        # For example, max accuracy for BTC is 6 decimal points, while XRP is
+        # only 1
         try:
             info = client.get_symbol_info(coin)
             step_size = info['filters'][2]['stepSize']
@@ -26,7 +30,9 @@ def convert_volume():
             if lot_size[coin] < 0:
                 lot_size[coin] = 0
 
-        except:
+        except Exception as e:
+            if DEBUG:
+                print(e)
             pass
 
         # calculate the volume in coin from QUANTITY in USDT (default)

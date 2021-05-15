@@ -1,5 +1,7 @@
-import yaml
 import argparse
+
+import yaml
+
 DEFAULT_SETTINGS_FILE = 'settings.json'
 
 
