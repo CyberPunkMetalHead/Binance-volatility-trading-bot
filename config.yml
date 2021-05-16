@@ -1,21 +1,21 @@
 # These options apply to how the script will operate.
 script_options:
-  # Switch between testnet and mainnet
+  # Switch between running in test mode (no buying/selling) and live mode
   # Setting this to False will use REAL funds, use at your own risk
-  TESTNET: True
+  TEST_MODE: True
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
 
 
 # These options apply to the trading methods the script executes
 trading_options:
-  # select what to pair the coins to and pull all coins paied with PAIR_WITH
+  # select what to pair the coins to and pull all coins paired with PAIR_WITH
   PAIR_WITH: USDT
 
-  # Total ammount per trade
+  # Total amount per trade
   QUANTITY: 15
 
-  # List of pairs to exlcude
+  # List of pairs to exclude
   # by default we're excluding the most popular fiat pairs
   FIATS:
     - EURUSDT
@@ -25,23 +25,23 @@ trading_options:
     - DOWN
     - UP
 
-  # Maximum number of coints to hold
+  # Maximum number of coins to hold; amount of money in live account needs to be at least QUANTITY * MAX_COINS
   MAX_COINS: 10
 
-  # the amount of time in SECONDS to calculate the differnce from the current price
-  TIME_DIFFERENCE: 30
+  # the amount of time in MINUTES to keep a rolling window; default: 3
+  TIME_DIFFERENCE: 3
 
-  # Numer of times to check for TP/SL during each TIME_DIFFERENCE Minimum 1
-  RECHECK_INTERVAL: 6
+  # Number of times to check for TP/SL during each TIME_DIFFERENCE; minimum: 1, default: 36 (every 5s)
+  RECHECK_INTERVAL: 36
 
-  # the difference in % between the first and second checks for the price.
-  CHANGE_IN_PRICE: 1.25
+  # the (positive) difference in % within a TIME_DIFFERENCE period of time that will trigger a buy operation
+  CHANGE_IN_PRICE: 3
 
   # define in % when to sell a coin that's not making a profit
-  STOP_LOSS: 1.75
+  STOP_LOSS: 2
 
   # define in % when to take profit on a profitable coin
-  TAKE_PROFIT: 3
+  TAKE_PROFIT: 2
 
   # Use custom tickers.txt list for filtering pairs
   CUSTOM_LIST: False

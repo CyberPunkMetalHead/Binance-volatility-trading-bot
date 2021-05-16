@@ -2,8 +2,3 @@
 prod:
   access_key: replace_me
   secret_key: replace_me
-
-# TEST NET
-test:
-  access_key: replace_me
-  secret_key: replace_me
