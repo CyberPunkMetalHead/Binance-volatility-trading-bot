@@ -39,6 +39,10 @@ class txcolors:
     DIM = '\033[2m\033[35m'
     DEFAULT = '\033[39m'
 
+# tracks profit/loss each session
+global session_profit
+session_profit = 0
+
 # print with timestamps
 import sys
 old_out = sys.stdout
@@ -60,6 +64,7 @@ class St_ampe_dOut:
         pass
 
 sys.stdout = St_ampe_dOut()
+
 
 def get_price(add_to_historical=True):
     '''Return the current price for all coins on binance'''
@@ -93,9 +98,15 @@ def wait_for_price():
 
     volatile_coins = {}
 
+    coins_up = 0
+    coins_down = 0
+    coins_unchanged = 0
+
     if historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
         # sleep for exactly the amount of time required
         time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds())
+
+    print(f'not enough time has passed yet...Session profit:{session_profit:.2f}%')
 
     # retreive latest prices
     get_price()
@@ -109,19 +120,30 @@ def wait_for_price():
         threshold_check = (-1.0 if min_price[coin]['time'] > max_price[coin]['time'] else 1.0) * (float(max_price[coin]['price']) - float(min_price[coin]['price'])) / float(min_price[coin]['price']) * 100
 
         # each coin with higher gains than our CHANGE_IN_PRICE is added to the volatile_coins dict if less than MAX_COINS is not reached.
-        if threshold_check >= CHANGE_IN_PRICE:
+        if threshold_check > CHANGE_IN_PRICE:
+            coins_up +=1
+
             if coin not in volatility_cooloff:
                 volatility_cooloff[coin] = datetime.now() - timedelta(minutes=TIME_DIFFERENCE)
 
             # only include coin as volatile if it hasn't been picked up in the last TIME_DIFFERENCE minutes already
             if datetime.now() >= volatility_cooloff[coin] + timedelta(minutes=TIME_DIFFERENCE):
                 volatility_cooloff[coin] = datetime.now()
+
                 if len(coins_bought) < MAX_COINS:
                     volatile_coins[coin] = round(threshold_check, 3)
-
                     print(f'{coin} has gained {volatile_coins[coin]}% within the last {TIME_DIFFERENCE} minutes, calculating volume in {PAIR_WITH}')
+
                 else:
-                    print(f'{txcolors.WARNING}{coin} has gained {threshold_check}% within the last {TIME_DIFFERENCE} minutes, but you are holding max number of coins{txcolors.DEFAULT}')
+                    print(f'{txcolors.WARNING}{coin} has gained {round(threshold_check, 3)}% within the last {TIME_DIFFERENCE} minutes, but you are holding max number of coins{txcolors.DEFAULT}')
+
+        elif threshold_check < CHANGE_IN_PRICE:
+            coins_down +=1
+
+        else:
+            coins_unchanged +=1
+
+    print(f'Up: {coins_up} Down: {coins_down} Unchanged: {coins_unchanged}')
 
     return volatile_coins, len(volatile_coins), historical_prices[hsp_head]
 
@@ -232,7 +254,7 @@ def buy():
 def sell_coins():
     '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
 
-    global hsp_head
+    global hsp_head, session_profit
 
     last_price = get_price(False) # don't populate rolling window
     coins_sold = {}
@@ -250,14 +272,14 @@ def sell_coins():
         # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
         if float(last_price[coin]['price']) > TP and USE_TRAILING_STOP_LOSS:
             if DEBUG: print("TP reached, adjusting TP and SL accordingly to lock-in profit")
-            
+
             # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
             coins_bought[coin]['take_profit'] += TRAILING_TAKE_PROFIT
             coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
 
             continue
 
-        # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case 
+        # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
         if float(last_price[coin]['price']) < SL or (float(last_price[coin]['price']) > TP and not USE_TRAILING_STOP_LOSS):
             print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange:.2f}%{txcolors.DEFAULT}")
 
@@ -285,6 +307,7 @@ def sell_coins():
                 if LOG_TRADES:
                     profit = (LastPrice - BuyPrice) * coins_sold[coin]['volume']
                     write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%")
+                    session_profit=session_profit + PriceChange
             continue
 
         # no action; print once every TIME_DIFFERENCE
@@ -335,7 +358,7 @@ def write_log(logline):
 if __name__ == '__main__':
     # Load arguments then parse settings
     args = parse_args()
-    
+
     DEFAULT_CONFIG_FILE = 'config.yml'
     DEFAULT_CREDS_FILE = 'creds.yml'
 
@@ -343,8 +366,8 @@ if __name__ == '__main__':
     creds_file = args.creds if args.creds else DEFAULT_CREDS_FILE
     parsed_config = load_config(config_file)
     parsed_creds = load_config(creds_file)
-    
-    
+
+
 
     # Default no debugging
     DEBUG = False
@@ -369,18 +392,18 @@ if __name__ == '__main__':
     USE_TRAILING_STOP_LOSS = parsed_config['trading_options']['USE_TRAILING_STOP_LOSS']
     TRAILING_STOP_LOSS = parsed_config['trading_options']['TRAILING_STOP_LOSS']
     TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
-    
+
     if DEBUG_SETTING or args.debug:
         DEBUG = True
 
     # Load creds for correct environment
     access_key, secret_key = load_correct_creds(parsed_creds)
-    
-    if DEBUG: 
+
+    if DEBUG:
         print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
         print(f'Your credentials have been loaded from {creds_file}')
-            
-    
+
+
     # Authenticate with the client
     client = Client(access_key, secret_key)
 
