@@ -44,8 +44,16 @@ You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/202
 2. Copy `creds.example.yml` to `creds.yml` (or whatever you want.) and update the creds.
 
     ```sh
-    cp creds.example.yml > creds.yml
+    # linux: Copy file over.
+    cp creds.example.yml creds.yml
+
+    # windows: either copy the file in explorer and rename to 'creds.yml' or use
+    copy creds.example.yml creds.yml
+    
+    # powershell
+    Copy-Item creds.example.yml -Destination creds.yml
     ```
+    
     ```yml
     # MAIN NET
     prod:
