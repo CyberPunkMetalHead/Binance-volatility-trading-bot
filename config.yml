@@ -1,21 +1,21 @@
 # These options apply to how the script will operate.
 script_options:
-  # Switch between running in test mode (no buying/selling) and live mode
+  # Switch between testnet and mainnet
   # Setting this to False will use REAL funds, use at your own risk
-  TEST_MODE: True
+  TEST_MODE: False
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
 
 
 # These options apply to the trading methods the script executes
 trading_options:
-  # select what to pair the coins to and pull all coins paired with PAIR_WITH
+  # select what to pair the coins to and pull all coins paied with PAIR_WITH
   PAIR_WITH: USDT
 
-  # Total amount per trade
+  # Total ammount per trade
   QUANTITY: 15
 
-  # List of pairs to exclude
+  # List of pairs to exlcude
   # by default we're excluding the most popular fiat pairs
   FIATS:
     - EURUSDT
@@ -25,31 +25,39 @@ trading_options:
     - DOWN
     - UP
 
-  # Maximum number of coins to hold; amount of money in live account needs to be at least QUANTITY * MAX_COINS
-  MAX_COINS: 10
+  # Maximum number of coints to hold
+  MAX_COINS: 7
 
-  # the amount of time in MINUTES to keep a rolling window; default: 3
-  TIME_DIFFERENCE: 3
+  # the amount of time in MINUTES to calculate the difference from the current price
+  TIME_DIFFERENCE: 2
 
-  # Number of times to check for TP/SL during each TIME_DIFFERENCE; minimum: 1, default: 36 (every 5s)
-  RECHECK_INTERVAL: 36
+  # Numer of times to check for TP/SL during each TIME_DIFFERENCE Minimum 1
+  RECHECK_INTERVAL: 10
 
-  # the (positive) difference in % within a TIME_DIFFERENCE period of time that will trigger a buy operation
-  CHANGE_IN_PRICE: 3
+  # the difference in % between the first and second checks for the price.
+  CHANGE_IN_PRICE: 10
 
   # define in % when to sell a coin that's not making a profit
   STOP_LOSS: 2
 
   # define in % when to take profit on a profitable coin
-  TAKE_PROFIT: 2
+  TAKE_PROFIT: .8
 
   # Use custom tickers.txt list for filtering pairs
-  CUSTOM_LIST: False
-
+  CUSTOM_LIST: True
+   
+  # Name of custom tickers list
+  TICKERS_LIST: 'tickers.txt'
+   
   # whether to use trailing stop loss or not; default is True
   USE_TRAILING_STOP_LOSS: True
 
   # when hit TAKE_PROFIT, move STOP_LOSS to TRAILING_STOP_LOSS percentage points below TAKE_PROFIT hence locking in profit
   # when hit TAKE_PROFIT, move TAKE_PROFIT up by TRAILING_TAKE_PROFIT percentage points
-  TRAILING_STOP_LOSS: 2
-  TRAILING_TAKE_PROFIT: 2
+  TRAILING_STOP_LOSS: .4
+  TRAILING_TAKE_PROFIT: .1
+  
+  SIGNALLING_MODULES:
+    - signalsamplemod
+    
+  

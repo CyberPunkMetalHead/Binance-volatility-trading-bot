@@ -1,6 +1,16 @@
 # use for environment variables
 import os
 
+# use if needed to pass args to external modules
+import sys
+
+# used to create threads & dynamic loading of modules
+import threading
+import importlib
+
+# used for directory handling
+import glob
+
 # Needed for colorful console output Install with: python3 -m pip install colorama (Mac/Linux) or pip install colorama (PC)
 from colorama import init
 init()
@@ -17,7 +27,6 @@ from itertools import count
 
 # used to store trades and sell assets
 import json
-
 
 # Load helper modules
 from helpers.parameters import (
@@ -97,6 +106,7 @@ def wait_for_price():
     global historical_prices, hsp_head, volatility_cooloff
 
     volatile_coins = {}
+    externals = {}
 
     coins_up = 0
     coins_down = 0
@@ -118,7 +128,7 @@ def wait_for_price():
         max_price = max(historical_prices, key = lambda x: -1 if x is None else float(x[coin]['price']))
 
         threshold_check = (-1.0 if min_price[coin]['time'] > max_price[coin]['time'] else 1.0) * (float(max_price[coin]['price']) - float(min_price[coin]['price'])) / float(min_price[coin]['price']) * 100
-
+        
         # each coin with higher gains than our CHANGE_IN_PRICE is added to the volatile_coins dict if less than MAX_COINS is not reached.
         if threshold_check > CHANGE_IN_PRICE:
             coins_up +=1
@@ -142,12 +152,36 @@ def wait_for_price():
 
         else:
             coins_unchanged +=1
+    # Disabled until fix
+    #print(f'Up: {coins_up} Down: {coins_down} Unchanged: {coins_unchanged}')
 
-    print(f'Up: {coins_up} Down: {coins_down} Unchanged: {coins_unchanged}')
-
+    # Here goes new code for external signalling
+    externals = external_signals()
+    exnumber = 0
+    for excoin in externals:
+        if excoin not in volatile_coins and excoin not in coins_bought and (len(coins_bought) + exnumber) < MAX_COINS:
+            volatile_coins[excoin] = 1
+            exnumber +=1
+            print(f'External signal received on {excoin}, calculating volume in {PAIR_WITH}')
+    
     return volatile_coins, len(volatile_coins), historical_prices[hsp_head]
 
 
+def external_signals():
+    external_list = {}
+    signals = {}
+
+    # check directory and load pairs from files into external_list
+    signals = glob.glob("signals/*.exs")
+    for filename in signals:
+        for line in open(filename):
+            symbol = line.strip()
+            external_list[symbol] = symbol
+        os.remove(filename)
+
+    return external_list
+
+    
 def convert_volume():
     '''Converts the volume given in QUANTITY from USDT to the each coin's volume'''
 
@@ -358,7 +392,7 @@ def write_log(logline):
 if __name__ == '__main__':
     # Load arguments then parse settings
     args = parse_args()
-
+    mymodule = {}
     DEFAULT_CONFIG_FILE = 'config.yml'
     DEFAULT_CREDS_FILE = 'creds.yml'
 
@@ -366,8 +400,6 @@ if __name__ == '__main__':
     creds_file = args.creds if args.creds else DEFAULT_CREDS_FILE
     parsed_config = load_config(config_file)
     parsed_creds = load_config(creds_file)
-
-
 
     # Default no debugging
     DEBUG = False
@@ -392,7 +424,7 @@ if __name__ == '__main__':
     USE_TRAILING_STOP_LOSS = parsed_config['trading_options']['USE_TRAILING_STOP_LOSS']
     TRAILING_STOP_LOSS = parsed_config['trading_options']['TRAILING_STOP_LOSS']
     TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
-
+    SIGNALLING_MODULES = parsed_config['trading_options']['SIGNALLING_MODULES']
     if DEBUG_SETTING or args.debug:
         DEBUG = True
 
@@ -402,7 +434,7 @@ if __name__ == '__main__':
     if DEBUG:
         print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
         print(f'Your credentials have been loaded from {creds_file}')
-
+     
 
     # Authenticate with the client
     client = Client(access_key, secret_key)
@@ -437,6 +469,12 @@ if __name__ == '__main__':
     if not TEST_MODE:
         print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
         time.sleep(30)
+
+    # load signalling modules
+    for module in SIGNALLING_MODULES:
+        mymodule[module] = importlib.import_module(module)
+        t = threading.Thread(target=mymodule[module].do_work, args=())
+        t.start()     
 
     # seed initial prices
     get_price()
