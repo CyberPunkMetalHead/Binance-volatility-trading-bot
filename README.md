@@ -1,5 +1,18 @@
 # Binance Volitility Trading Bot
 
+
+## 💥 Disclaimer
+
+All investment strategies and investments involve risk of loss. 
+**Nothing contained in this program, scripts, code or repositoy should be construed as investment advice.**
+Any reference to an investment's past or potential performance is not, 
+and should not be construed as, a recommendation or as a guarantee of 
+any specific outcome or profit.
+
+-----
+
+
+## Description
 This Binance trading bot analyses the changes in price across all coins on Binance and place trades on the most volatile ones. 
 In addition to that, this Binance trading algorithm will also keep track of all the coins bought and sell them according to your specified Stop Loss and Take Profit.
 
