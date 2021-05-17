@@ -54,6 +54,8 @@ You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/202
     Copy-Item creds.example.yml -Destination creds.yml
     ```
     
+    - Edit the file.
+    
     ```yml
     # MAIN NET
     prod:
