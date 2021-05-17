@@ -35,7 +35,7 @@ You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/202
         python3 -m venv .venv
       
         source .venv/bin/activate # linux
-        source .venv/scripts/activate # windows
+        .\.venv/scripts/activate # windows
     
         pip install -r requirements.txt
         ```
