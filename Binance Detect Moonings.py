@@ -4,6 +4,10 @@ import os
 # use if needed to pass args to external modules
 import sys
 
+# used to create threads & dynamic loading of modules
+import threading
+import importlib
+
 # used for directory handling
 import glob
 
@@ -23,7 +27,6 @@ from itertools import count
 
 # used to store trades and sell assets
 import json
-
 
 # Load helper modules
 from helpers.parameters import (
@@ -389,7 +392,7 @@ def write_log(logline):
 if __name__ == '__main__':
     # Load arguments then parse settings
     args = parse_args()
-
+    mymodule = {}
     DEFAULT_CONFIG_FILE = 'config.yml'
     DEFAULT_CREDS_FILE = 'creds.yml'
 
@@ -397,8 +400,6 @@ if __name__ == '__main__':
     creds_file = args.creds if args.creds else DEFAULT_CREDS_FILE
     parsed_config = load_config(config_file)
     parsed_creds = load_config(creds_file)
-
-
 
     # Default no debugging
     DEBUG = False
@@ -423,7 +424,7 @@ if __name__ == '__main__':
     USE_TRAILING_STOP_LOSS = parsed_config['trading_options']['USE_TRAILING_STOP_LOSS']
     TRAILING_STOP_LOSS = parsed_config['trading_options']['TRAILING_STOP_LOSS']
     TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
-
+    SIGNALLING_MODULES = parsed_config['trading_options']['SIGNALLING_MODULES']
     if DEBUG_SETTING or args.debug:
         DEBUG = True
 
@@ -433,7 +434,7 @@ if __name__ == '__main__':
     if DEBUG:
         print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
         print(f'Your credentials have been loaded from {creds_file}')
-
+     
 
     # Authenticate with the client
     client = Client(access_key, secret_key)
@@ -468,6 +469,12 @@ if __name__ == '__main__':
     if not TEST_MODE:
         print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
         time.sleep(30)
+
+    # load signalling modules
+    for module in SIGNALLING_MODULES:
+        mymodule[module] = importlib.import_module(module)
+        t = threading.Thread(target=mymodule[module].do_work, args=())
+        t.start()     
 
     # seed initial prices
     get_price()

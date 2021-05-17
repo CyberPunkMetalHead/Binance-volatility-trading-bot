@@ -1,0 +1,29 @@
+{
+    "YFIUSDT": {
+        "symbol": "YFIUSDT",
+        "orderid": 930658501,
+        "timestamp": 1621178320533,
+        "bought_at": "64791.82000000",
+        "volume": 0.000232,
+        "stop_loss": -8,
+        "take_profit": 0.8
+    },
+    "UNIUSDT": {
+        "symbol": "UNIUSDT",
+        "orderid": 820042489,
+        "timestamp": 1621148607682,
+        "bought_at": "36.84900000",
+        "volume": 0.407,
+        "stop_loss": -8,
+        "take_profit": 0.8
+    },
+    "XMRUSDT": {
+        "symbol": "XMRUSDT",
+        "orderid": 595547861,
+        "timestamp": 1621188581554,
+        "bought_at": "400.28000000",
+        "volume": 0.03747,
+        "stop_loss": -8,
+        "take_profit": 0.8
+    }
+}
