@@ -152,8 +152,8 @@ def wait_for_price():
 
         else:
             coins_unchanged +=1
-
-    print(f'Up: {coins_up} Down: {coins_down} Unchanged: {coins_unchanged}')
+    # Disabled until fix
+    #print(f'Up: {coins_up} Down: {coins_down} Unchanged: {coins_unchanged}')
 
     # Here goes new code for external signalling
     externals = external_signals()
