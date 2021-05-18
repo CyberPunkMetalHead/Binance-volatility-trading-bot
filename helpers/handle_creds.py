@@ -24,6 +24,10 @@ def test_api_key(client, BinanceAPIException):
             return False, "Your API key is not formatted correctly..."
         elif e.code == -2014:
             return False, "Your API key is either incorrect, IP blocked, or incorrect tld/permissons..."
+        elif e.code == -2021:
+            issue = "https://github.com/CyberPunkMetalHead/Binance-volatility-trading-bot/issues/28"
+            msg = "Ensure your OS is time synced with a timeserver. See issue."
+            return False, f"Timestamp for this request was 1000ms ahead of the server's time.\n  {issue}\n  {msg}"
         else:
             return False, e
     
