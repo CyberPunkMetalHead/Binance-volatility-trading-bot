@@ -2,7 +2,7 @@
 Disclaimer
 
 All investment strategies and investments involve risk of loss. 
-Nothing contained in this program, scripts, code or repositoy should be 
+Nothing contained in this program, scripts, code or repository should be 
 construed as investment advice.Any reference to an investment's past or 
 potential performance is not, and should not be construed as, a recommendation
 or as a guarantee of any specific outcome or profit.
@@ -423,6 +423,7 @@ if __name__ == '__main__':
     TEST_MODE = parsed_config['script_options']['TEST_MODE']
     LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
     LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
+    BINANCE_VERSION = parsed_config['script_options'].get('BINANCE_VERSION')
     DEBUG_SETTING = parsed_config['script_options'].get('DEBUG')
 
     # Load trading vars
@@ -452,7 +453,10 @@ if __name__ == '__main__':
      
 
     # Authenticate with the client, Ensure API key is good before continuing
-    client = Client(access_key, secret_key)
+    if BINANCE_VERSION != 'default':
+        client = Client(access_key, secret_key)
+    else:
+        client = Client(access_key, secret_key, tld=BINANCE_VERSION)
     api_ready, msg = test_api_key(client, BinanceAPIException)
     if api_ready is not True:
         exit(msg)

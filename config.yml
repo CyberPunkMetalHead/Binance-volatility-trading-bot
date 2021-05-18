@@ -5,17 +5,19 @@ script_options:
   TEST_MODE: True
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
+  # Choose which Binance version to use ('default', 'us', 'jp', etc)
+  BINANCE_VERSION: 'default'
 
 
 # These options apply to the trading methods the script executes
 trading_options:
-  # select what to pair the coins to and pull all coins paied with PAIR_WITH
+  # select what to pair the coins to and pull all coins paired with PAIR_WITH
   PAIR_WITH: USDT
 
-  # Total ammount per trade
+  # Total amount per trade
   QUANTITY: 15
 
-  # List of pairs to exlcude
+  # List of pairs to exclude
   # by default we're excluding the most popular fiat pairs
   FIATS:
     - EURUSDT
@@ -25,13 +27,13 @@ trading_options:
     - DOWN
     - UP
 
-  # Maximum number of coints to hold
+  # Maximum number of coins to hold
   MAX_COINS: 7
 
   # the amount of time in MINUTES to calculate the difference from the current price
   TIME_DIFFERENCE: 2
 
-  # Numer of times to check for TP/SL during each TIME_DIFFERENCE Minimum 1
+  # Number of times to check for TP/SL during each TIME_DIFFERENCE Minimum 1
   RECHECK_INTERVAL: 10
 
   # the difference in % between the first and second checks for the price.
