@@ -2,7 +2,7 @@
 Disclaimer
 
 All investment strategies and investments involve risk of loss. 
-Nothing contained in this program, scripts, code or repositoy should be 
+Nothing contained in this program, scripts, code or repository should be 
 construed as investment advice.Any reference to an investment's past or 
 potential performance is not, and should not be construed as, a recommendation
 or as a guarantee of any specific outcome or profit.
@@ -246,7 +246,6 @@ def buy():
     orders = {}
 
     for coin in volume:
-
         # only buy if the there are no active trades on the coin
         if coin not in coins_bought:
             print(f"{txcolors.BUY}Preparing to buy {volume[coin]} {coin}{txcolors.DEFAULT}")
@@ -272,10 +271,6 @@ def buy():
                     type = 'MARKET',
                     quantity = volume[coin]
                 )
-                notification.notify(title = "BVTB Buy",
-                                    message = "New coin bought: {volume[coin]} {coin} - {last_price[coin]['price']}",
-                                    # TODO app_icon: '*.ico
-                                    timeout = 30)
 
             # error handling here in case position cannot be placed
             except Exception as e:
@@ -283,6 +278,13 @@ def buy():
 
             # run the else block if the position has been placed and return order info
             else:
+                if DESKTOP_NOTIFICATIONS:
+                    notification.notify(
+                        app_name = "Binance Volatility Trading Bot",
+                        title = "Binance Volatility Trading Bot: Purchased Coin {coin}",
+                        message = "New coin bought: {volume[coin]} {coin} - {last_price[coin]['price']}",
+                        # TODO app_icon: '*.ico
+                        timeout = 30)
                 orders[coin] = client.get_all_orders(symbol=coin, limit=1)
 
                 # binance sometimes returns an empty list, the code will wait here until binance returns the order
@@ -348,10 +350,7 @@ def sell_coins():
                         type = 'MARKET',
                         quantity = coins_bought[coin]['volume']
                     )
-                    notification.notify(title = "BVTB Sell",
-                                    message = "Sell coin: \nReason: {'SL' if float(last_price[coin]['price']) < SL else 'TP'}\n {coins_bought[coin]['volume']} {coin} - {LastPrice}\n Profit: {PriceChange:.2f}%",
-                                    # TODO app_icon: '*.ico
-                                    timeout = 30)
+                    
 
             # error handling here in case position cannot be placed
             except Exception as e:
@@ -359,6 +358,13 @@ def sell_coins():
 
             # run the else block if coin has been sold and create a dict for each coin sold
             else:
+                if DESKTOP_NOTIFICATIONS:
+                    notification.notify(
+                        app_name = "Binance Volatility Trading Bot",
+                        title = "Binance Volatility Trading Bot | Sold Coin {coin}",
+                        message = "Sold coin: \nReason: {'SL' if float(last_price[coin]['price']) < SL else 'TP'}\n {coins_bought[coin]['volume']} {coin} - {LastPrice}\n Profit: {PriceChange:.2f}%",
+                        # TODO app_icon: '*.ico
+                        timeout = 30)
                 coins_sold[coin] = coins_bought[coin]
                 # Log trade
 
@@ -433,6 +439,7 @@ if __name__ == '__main__':
     LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
     LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
     DEBUG_SETTING = parsed_config['script_options'].get('DEBUG')
+    DESKTOP_NOTIFICATIONS = parsed_config['script_options'].get('DESKTOP_NOTIFICATIONS')
 
     # Load trading vars
     PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']

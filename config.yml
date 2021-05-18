@@ -5,6 +5,7 @@ script_options:
   TEST_MODE: True
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
+  DESKTOP_NOTIFICATIONS: False
 
 
 # These options apply to the trading methods the script executes
