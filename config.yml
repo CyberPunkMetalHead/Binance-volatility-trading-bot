@@ -6,6 +6,9 @@ script_options:
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
 
+  # Set this to true if you're using Binance US
+  BINANCE_US: False
+
 
 # These options apply to the trading methods the script executes
 trading_options:
@@ -48,7 +51,8 @@ trading_options:
    
   # Name of custom tickers list
   TICKERS_LIST: 'tickers.txt'
-   
+  US_TICKERS_LIST: 'us_tickers.txt'
+  
   # whether to use trailing stop loss or not; default is True
   USE_TRAILING_STOP_LOSS: True
 

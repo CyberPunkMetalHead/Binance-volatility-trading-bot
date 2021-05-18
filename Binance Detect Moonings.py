@@ -423,6 +423,7 @@ if __name__ == '__main__':
     TEST_MODE = parsed_config['script_options']['TEST_MODE']
     LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
     LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
+    BINANCE_US = parsed_config['script_options'].get('BINANCE_US')
     DEBUG_SETTING = parsed_config['script_options'].get('DEBUG')
 
     # Load trading vars
@@ -452,13 +453,13 @@ if __name__ == '__main__':
      
 
     # Authenticate with the client, Ensure API key is good before continuing
-    client = Client(access_key, secret_key)
+    client = Client(access_key, secret_key, tld='us' if BINANCE_US else 'com')
     api_ready, msg = test_api_key(client, BinanceAPIException)
     if api_ready is not True:
         exit(msg)
 
     # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
-    if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
+    if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt' if not BINANCE_US else 'us_tickers.txt')]
 
     # try to load all the coins bought by the bot if the file exists and is not empty
     coins_bought = {}
@@ -492,7 +493,7 @@ if __name__ == '__main__':
     # load signalling modules
     for module in SIGNALLING_MODULES:
         mymodule[module] = importlib.import_module(module)
-        t = threading.Thread(target=mymodule[module].do_work, args=())
+        t = threading.Thread(target=mymodule[module].do_work, args=("us_tickers.txt",) if BINANCE_US else ())
         t.start()     
 
     # seed initial prices

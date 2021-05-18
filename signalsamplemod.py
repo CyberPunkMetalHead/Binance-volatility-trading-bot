@@ -78,13 +78,13 @@ def analyze(pairs):
 
     return signal_coins
 
-def do_work():
+def do_work(tickers_list = TICKERS):
     signal_coins = {}
     pairs = {}
 
-    pairs=[line.strip() for line in open(TICKERS)]
-    for line in open(TICKERS):
-        pairs=[line.strip() + PAIR_WITH for line in open(TICKERS)] 
+    pairs=[line.strip() for line in open(tickers_list)]
+    for line in open(tickers_list):
+        pairs=[line.strip() + PAIR_WITH for line in open(tickers_list)] 
     
     while True:
         print(f'Signalsample: Analyzing {len(pairs)} coins')
