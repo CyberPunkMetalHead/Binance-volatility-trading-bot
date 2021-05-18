@@ -459,7 +459,7 @@ if __name__ == '__main__':
         exit(msg)
 
     # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
-    if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt' if not BINANCE_US else 'us_tickers.txt')]
+    if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
 
     # try to load all the coins bought by the bot if the file exists and is not empty
     coins_bought = {}
@@ -493,7 +493,7 @@ if __name__ == '__main__':
     # load signalling modules
     for module in SIGNALLING_MODULES:
         mymodule[module] = importlib.import_module(module)
-        t = threading.Thread(target=mymodule[module].do_work, args=("us_tickers.txt",) if BINANCE_US else ())
+        t = threading.Thread(target=mymodule[module].do_work, args=("signalsample_us.txt",) if BINANCE_US else ())
         t.start()     
 
     # seed initial prices
