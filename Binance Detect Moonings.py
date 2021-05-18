@@ -1,3 +1,13 @@
+"""
+Disclaimer
+
+All investment strategies and investments involve risk of loss. 
+Nothing contained in this program, scripts, code or repositoy should be 
+construed as investment advice.Any reference to an investment's past or 
+potential performance is not, and should not be construed as, a recommendation
+or as a guarantee of any specific outcome or profit.
+"""
+
 # use for environment variables
 import os
 
@@ -15,8 +25,9 @@ import glob
 from colorama import init
 init()
 
-# needed for the binance API and websockets
+# needed for the binance API / websockets / Exception handling
 from binance.client import Client
+from binance.exceptions import BinanceAPIException
 
 # used for dates
 from datetime import date, datetime, timedelta
@@ -35,7 +46,7 @@ from helpers.parameters import (
 
 # Load creds modules
 from helpers.handle_creds import (
-    load_correct_creds
+    load_correct_creds, test_api_key
 )
 
 
@@ -436,8 +447,11 @@ if __name__ == '__main__':
         print(f'Your credentials have been loaded from {creds_file}')
      
 
-    # Authenticate with the client
+    # Authenticate with the client, Ensure API key is good before continuing
     client = Client(access_key, secret_key)
+    api_ready, msg = test_api_key(client, BinanceAPIException)
+    if api_ready is not True:
+        exit(msg)
 
     # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
     if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
@@ -467,8 +481,9 @@ if __name__ == '__main__':
     print('Press Ctrl-Q to stop the script')
 
     if not TEST_MODE:
-        print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
-        time.sleep(30)
+        if not args.notimeout:
+            print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
+            time.sleep(30)
 
     # load signalling modules
     for module in SIGNALLING_MODULES:
