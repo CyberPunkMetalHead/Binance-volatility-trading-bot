@@ -53,6 +53,8 @@ from helpers.handle_creds import (
     load_correct_creds, test_api_key
 )
 
+from plyer import notification
+
 
 # for colourful logging to the console
 class txcolors:
@@ -270,6 +272,10 @@ def buy():
                     type = 'MARKET',
                     quantity = volume[coin]
                 )
+                notification.notify(title = "BVTB Buy",
+                                    message = "New coin bought: {volume[coin]} {coin} - {last_price[coin]['price']}",
+                                    # TODO app_icon: '*.ico
+                                    timeout = 30)
 
             # error handling here in case position cannot be placed
             except Exception as e:
@@ -341,8 +347,11 @@ def sell_coins():
                         side = 'SELL',
                         type = 'MARKET',
                         quantity = coins_bought[coin]['volume']
-
                     )
+                    notification.notify(title = "BVTB Sell",
+                                    message = "Sell coin: \nReason: {'SL' if float(last_price[coin]['price']) < SL else 'TP'}\n {coins_bought[coin]['volume']} {coin} - {LastPrice}\n Profit: {PriceChange:.2f}%",
+                                    # TODO app_icon: '*.ico
+                                    timeout = 30)
 
             # error handling here in case position cannot be placed
             except Exception as e:
