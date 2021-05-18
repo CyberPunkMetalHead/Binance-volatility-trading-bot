@@ -23,7 +23,9 @@ def test_api_key(client, BinanceAPIException):
         if e.code == -2015:
             return False, "Your API key is not formatted correctly..."
         elif e.code == -2014:
-            return False, "Your API key is either incorrect, IP blocked, or incorrect tld/permissons..."
+            america = "If you are in america, you will have to update your TLD to use 'us'."
+            ip_b = "If you set an IP block on your keys make sure this IP address is allowed. check ipinfo.io/ip"
+            return False, "Your API key is either incorrect, IP blocked, or incorrect tld/permissons...\n  {america}\n  {ip_b}"
         elif e.code == -2021:
             issue = "https://github.com/CyberPunkMetalHead/Binance-volatility-trading-bot/issues/28"
             msg = "Ensure your OS is time synced with a timeserver. See issue."
@@ -32,5 +34,4 @@ def test_api_key(client, BinanceAPIException):
             return False, e
     
     except Exception as e:
-        print(f"Fallback exception occured:\n{e}")
-        return False, "fail"
+        return False, f"Fallback exception occured:\n{e}"
