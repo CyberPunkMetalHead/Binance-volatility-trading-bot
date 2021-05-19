@@ -1,9 +1,9 @@
 """
 Disclaimer
 
-All investment strategies and investments involve risk of loss. 
-Nothing contained in this program, scripts, code or repositoy should be 
-construed as investment advice.Any reference to an investment's past or 
+All investment strategies and investments involve risk of loss.
+Nothing contained in this program, scripts, code or repositoy should be
+construed as investment advice.Any reference to an investment's past or
 potential performance is not, and should not be construed as, a recommendation
 or as a guarantee of any specific outcome or profit.
 
@@ -53,6 +53,7 @@ from helpers.handle_creds import (
     load_correct_creds, test_api_key
 )
 
+from helpers.database import (connect,see_if_dbs_exist,insert_coin,get_coin_id,delete_coin, insert_log)
 
 # for colourful logging to the console
 class txcolors:
@@ -70,6 +71,7 @@ session_profit = 0
 # print with timestamps
 import sys
 old_out = sys.stdout
+
 class St_ampe_dOut:
     """Stamped stdout."""
     nl = True
@@ -143,7 +145,7 @@ def wait_for_price():
         max_price = max(historical_prices, key = lambda x: -1 if x is None else float(x[coin]['price']))
 
         threshold_check = (-1.0 if min_price[coin]['time'] > max_price[coin]['time'] else 1.0) * (float(max_price[coin]['price']) - float(min_price[coin]['price'])) / float(min_price[coin]['price']) * 100
-        
+
         # each coin with higher gains than our CHANGE_IN_PRICE is added to the volatile_coins dict if less than MAX_COINS is not reached.
         if threshold_check > CHANGE_IN_PRICE:
             coins_up +=1
@@ -177,8 +179,10 @@ def wait_for_price():
         if excoin not in volatile_coins and excoin not in coins_bought and (len(coins_bought) + exnumber) < MAX_COINS:
             volatile_coins[excoin] = 1
             exnumber +=1
-            print(f'External signal received on {excoin}, calculating volume in {PAIR_WITH}')
-    
+            msg = f'External signal received on {excoin}, calculating volume in {PAIR_WITH}'
+            insert_log(conn, f'{msg}')
+            print(msg)
+
     return volatile_coins, len(volatile_coins), historical_prices[hsp_head]
 
 
@@ -196,7 +200,7 @@ def external_signals():
 
     return external_list
 
-    
+
 def convert_volume():
     '''Converts the volume given in QUANTITY from USDT to the each coin's volume'''
 
@@ -258,7 +262,9 @@ def buy():
 
                 # Log trade
                 if LOG_TRADES:
-                    write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
+                    msg = f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}"
+                    insert_log(conn, f'{msg}')
+                    write_log(msg)
 
                 continue
 
@@ -355,8 +361,11 @@ def sell_coins():
 
                 if LOG_TRADES:
                     profit = (LastPrice - BuyPrice) * coins_sold[coin]['volume']
-                    write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%")
+                    msg = f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%"
+                    insert_log(conn, f'{msg}')
+                    write_log(msg)
                     session_profit=session_profit + PriceChange
+
             continue
 
         # no action; print once every TIME_DIFFERENCE
@@ -380,7 +389,7 @@ def update_portfolio(orders, last_price, volume):
             'stop_loss': -STOP_LOSS,
             'take_profit': TAKE_PROFIT,
             }
-
+        insert_coin(conn, coins_bought[coin])
         # save the coins in a json file in the same directory
         with open(coins_bought_file_path, 'w') as file:
             json.dump(coins_bought, file, indent=4)
@@ -390,6 +399,12 @@ def update_portfolio(orders, last_price, volume):
 
 def remove_from_portfolio(coins_sold):
     '''Remove coins sold due to SL or TP from portfolio'''
+
+    # pop from db too
+    for coin in coins_sold:
+        db_row_for_coin = coins_sold[coin]['orderid']
+        delete_coin(conn, db_row_for_coin)
+
     for coin in coins_sold:
         coins_bought.pop(coin)
 
@@ -408,6 +423,8 @@ if __name__ == '__main__':
     # Load arguments then parse settings
     args = parse_args()
     mymodule = {}
+    see_if_dbs_exist()
+    conn = connect()
     DEFAULT_CONFIG_FILE = 'config.yml'
     DEFAULT_CREDS_FILE = 'creds.yml'
 
@@ -449,13 +466,13 @@ if __name__ == '__main__':
     if DEBUG:
         print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
         print(f'Your credentials have been loaded from {creds_file}')
-     
+
 
     # Authenticate with the client, Ensure API key is good before continuing
     client = Client(access_key, secret_key)
     api_ready, msg = test_api_key(client, BinanceAPIException)
     if api_ready is not True:
-        exit(msg)
+        exit(f'{txcolors.SELL_LOSS}{msg}{txcolors.DEFAULT}')
 
     # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
     if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
@@ -483,9 +500,9 @@ if __name__ == '__main__':
                 coins_bought = json.load(file)
 
     print('Press Ctrl-Q to stop the script')
-
+    insert_log(conn, "Bot started")
     if not TEST_MODE:
-        if not args.notimeout:
+        if not args.notimeout: # if notimeout skip this (fast for dev tests)
             print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
             time.sleep(30)
 
@@ -493,12 +510,15 @@ if __name__ == '__main__':
     for module in SIGNALLING_MODULES:
         mymodule[module] = importlib.import_module(module)
         t = threading.Thread(target=mymodule[module].do_work, args=())
-        t.start()     
+        t.start()
 
     # seed initial prices
     get_price()
     while True:
         orders, last_price, volume = buy()
+
         update_portfolio(orders, last_price, volume)
         coins_sold = sell_coins()
-        remove_from_portfolio(coins_sold)
+        #print(f"COINS SOLD: \n{json.dumps(coins_sold, indent=4)}")
+        rmp = remove_from_portfolio(coins_sold)
+        #print(f"REMOVE FROM PORT: \n{json.dumps(rmp, indent=4)}")
