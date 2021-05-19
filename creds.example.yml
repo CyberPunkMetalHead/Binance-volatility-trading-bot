@@ -2,3 +2,9 @@
 prod:
   access_key: replace_me
   secret_key: replace_me
+
+# Setting this to support telegram bot
+telegram:
+    TELEGRAM_LOGGING: False
+    TELEGRAM_CHANNEL_ID: YOUR ID
+    TELEGRAM_TOKEN: "YOUR TOKEN"
