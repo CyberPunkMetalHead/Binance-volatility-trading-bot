@@ -6,6 +6,8 @@ script_options:
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
 
+  # Setting this to support telegram bot
+  TELEGRAM_LOGGING: False
 
 # These options apply to the trading methods the script executes
 trading_options:
@@ -13,7 +15,7 @@ trading_options:
   PAIR_WITH: USDT
 
   # Total ammount per trade
-  QUANTITY: 15
+  QUANTITY: 20
 
   # List of pairs to exlcude
   # by default we're excluding the most popular fiat pairs
@@ -26,38 +28,36 @@ trading_options:
     - UP
 
   # Maximum number of coints to hold
-  MAX_COINS: 7
+  MAX_COINS: 5
 
   # the amount of time in MINUTES to calculate the difference from the current price
   TIME_DIFFERENCE: 2
 
   # Numer of times to check for TP/SL during each TIME_DIFFERENCE Minimum 1
-  RECHECK_INTERVAL: 10
+  RECHECK_INTERVAL: 120
 
   # the difference in % between the first and second checks for the price.
-  CHANGE_IN_PRICE: 10
+  CHANGE_IN_PRICE: 0.8
 
   # define in % when to sell a coin that's not making a profit
-  STOP_LOSS: 2
+  STOP_LOSS: 50
 
   # define in % when to take profit on a profitable coin
-  TAKE_PROFIT: .8
+  TAKE_PROFIT: 1.5
 
   # Use custom tickers.txt list for filtering pairs
   CUSTOM_LIST: True
-   
+
   # Name of custom tickers list
   TICKERS_LIST: 'tickers.txt'
-   
+
   # whether to use trailing stop loss or not; default is True
   USE_TRAILING_STOP_LOSS: True
 
   # when hit TAKE_PROFIT, move STOP_LOSS to TRAILING_STOP_LOSS percentage points below TAKE_PROFIT hence locking in profit
   # when hit TAKE_PROFIT, move TAKE_PROFIT up by TRAILING_TAKE_PROFIT percentage points
-  TRAILING_STOP_LOSS: .4
-  TRAILING_TAKE_PROFIT: .1
-  
+  TRAILING_STOP_LOSS: 0.3
+  TRAILING_TAKE_PROFIT: 0.001
+
   SIGNALLING_MODULES:
     - signalsamplemod
-    
-  
