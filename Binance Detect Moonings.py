@@ -518,6 +518,22 @@ if __name__ == '__main__':
         print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
         #time.sleep(30)
 
+    signals = glob.glob("signals/*.exs")
+    for filename in signals:
+        for line in open(filename):
+            try:
+                os.remove(filename)
+            except:
+                print(f'{txcolors.WARNING}Could not remove external signalling file {filename}{txcolors.DEFAULT}')
+
+    signals = glob.glob("signals/*.exc")
+    for filename in signals:
+        for line in open(filename):
+            try:
+                os.remove(filename)
+            except:
+                print(f'{txcolors.WARNING}Could not remove external signalling file {filename}{txcolors.DEFAULT}')
+
     # load signalling modules
     try:
         if len(SIGNALLING_MODULES) > 0:
@@ -525,12 +541,12 @@ if __name__ == '__main__':
                 print(f'Starting {module}')
                 mymodule[module] = importlib.import_module(module)
                 t = threading.Thread(target=mymodule[module].do_work, args=())
+                t.daemon = True
                 t.start()
         else:
             print(f'No modules to load {SIGNALLING_MODULES}')
     except Exception as e:
         print(e)
-                
                 
     # seed initial prices
     get_price()
