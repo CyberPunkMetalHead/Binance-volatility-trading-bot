@@ -1,9 +1,9 @@
 """
 Disclaimer
 
-All investment strategies and investments involve risk of loss. 
-Nothing contained in this program, scripts, code or repositoy should be 
-construed as investment advice.Any reference to an investment's past or 
+All investment strategies and investments involve risk of loss.
+Nothing contained in this program, scripts, code or repositoy should be
+construed as investment advice.Any reference to an investment's past or
 potential performance is not, and should not be construed as, a recommendation
 or as a guarantee of any specific outcome or profit.
 
@@ -143,7 +143,7 @@ def wait_for_price():
         max_price = max(historical_prices, key = lambda x: -1 if x is None else float(x[coin]['price']))
 
         threshold_check = (-1.0 if min_price[coin]['time'] > max_price[coin]['time'] else 1.0) * (float(max_price[coin]['price']) - float(min_price[coin]['price'])) / float(min_price[coin]['price']) * 100
-        
+
         # each coin with higher gains than our CHANGE_IN_PRICE is added to the volatile_coins dict if less than MAX_COINS is not reached.
         if threshold_check > CHANGE_IN_PRICE:
             coins_up +=1
@@ -178,7 +178,7 @@ def wait_for_price():
             volatile_coins[excoin] = 1
             exnumber +=1
             print(f'External signal received on {excoin}, calculating volume in {PAIR_WITH}')
-    
+
     return volatile_coins, len(volatile_coins), historical_prices[hsp_head]
 
 
@@ -196,7 +196,7 @@ def external_signals():
 
     return external_list
 
-    
+
 def convert_volume():
     '''Converts the volume given in QUANTITY from USDT to the each coin's volume'''
 
@@ -323,7 +323,7 @@ def sell_coins():
             if DEBUG: print("TP reached, adjusting TP and SL accordingly to lock-in profit")
 
             # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
-            coins_bought[coin]['take_profit'] += TRAILING_TAKE_PROFIT
+            coins_bought[coin]['take_profit'] = PriceChange + TRAILING_TAKE_PROFIT
             coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
 
             continue
@@ -450,13 +450,13 @@ if __name__ == '__main__':
     if DEBUG:
         print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
         print(f'Your credentials have been loaded from {creds_file}')
-     
+
 
     # Authenticate with the client, Ensure API key is good before continuing
     client = Client(access_key, secret_key, tld='us' if BINANCE_US else 'com')
     api_ready, msg = test_api_key(client, BinanceAPIException)
     if api_ready is not True:
-        exit(msg)
+        exit(f'{txcolors.SELL_LOSS}{msg}{txcolors.DEFAULT}')
 
     # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
     if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
@@ -486,7 +486,7 @@ if __name__ == '__main__':
     print('Press Ctrl-Q to stop the script')
 
     if not TEST_MODE:
-        if not args.notimeout:
+        if not args.notimeout: # if notimeout skip this (fast for dev tests)
             print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
             time.sleep(30)
 
