@@ -111,7 +111,7 @@ def wait_for_price():
     coins_up = 0
     coins_down = 0
     coins_unchanged = 0
-
+    pause_bot()
     if historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
         # sleep for exactly the amount of time required
         time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds())
@@ -181,6 +181,24 @@ def external_signals():
 
     return external_list
 
+def pause_bot():
+    global bot_paused
+    
+    if os.path.isfile("signals/paused.exc"):
+        pause = True
+        if bot_paused == False:
+            print(f'{txcolors.WARNING}Entering test mode due to change in market conditions{txcolors.DEFAULT}')
+            bot_paused = True
+            #coins_bought_file_path = 'test_coins_bought.json'
+    else:
+        pause = False 
+        if  bot_paused == True:
+            print(f'{txcolors.WARNING}Resuming normal mode due to change in market conditions{txcolors.DEFAULT}')
+            bot_paused = False
+            #if not TEST_MODE: coins_bought_file_path = 'coins_bought.json'
+            
+    return
+
     
 def convert_volume():
     '''Converts the volume given in QUANTITY from USDT to the each coin's volume'''
@@ -224,7 +242,7 @@ def convert_volume():
 
 def buy():
     '''Place Buy market orders for each volatile coin found'''
-
+    global bot_paused
     volume, last_price = convert_volume()
     orders = {}
 
@@ -234,7 +252,7 @@ def buy():
         if coin not in coins_bought:
             print(f"{txcolors.BUY}Preparing to buy {volume[coin]} {coin}{txcolors.DEFAULT}")
 
-            if TEST_MODE:
+            if TEST_MODE or bot_paused:
                 orders[coin] = [{
                     'symbol': coin,
                     'orderId': 0,
@@ -288,7 +306,7 @@ def buy():
 def sell_coins():
     '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
 
-    global hsp_head, session_profit
+    global hsp_head, session_profit, bot_paused
 
     last_price = get_price(False) # don't populate rolling window
     coins_sold = {}
@@ -305,12 +323,11 @@ def sell_coins():
 
         # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
         if float(last_price[coin]['price']) > TP and USE_TRAILING_STOP_LOSS:
-            if DEBUG: print("TP reached, adjusting TP and SL accordingly to lock-in profit")
-
+         
             # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
             coins_bought[coin]['take_profit'] += TRAILING_TAKE_PROFIT
             coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
-
+            if DEBUG: print(f"{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']}  and SL {coins_bought[coin]['stop_loss']} accordingly to lock-in profit")
             continue
 
         # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
@@ -393,6 +410,9 @@ if __name__ == '__main__':
     # Load arguments then parse settings
     args = parse_args()
     mymodule = {}
+    global bot_paused
+    bot_paused = False
+    
     DEFAULT_CONFIG_FILE = 'config.yml'
     DEFAULT_CREDS_FILE = 'creds.yml'
 
@@ -402,7 +422,7 @@ if __name__ == '__main__':
     parsed_creds = load_config(creds_file)
 
     # Default no debugging
-    DEBUG = False
+    DEBUG = True
 
     # Load system vars
     TEST_MODE = parsed_config['script_options']['TEST_MODE']
@@ -421,6 +441,7 @@ if __name__ == '__main__':
     STOP_LOSS = parsed_config['trading_options']['STOP_LOSS']
     TAKE_PROFIT = parsed_config['trading_options']['TAKE_PROFIT']
     CUSTOM_LIST = parsed_config['trading_options']['CUSTOM_LIST']
+    TICKERS_LIST = parsed_config['trading_options']['TICKERS_LIST']
     USE_TRAILING_STOP_LOSS = parsed_config['trading_options']['USE_TRAILING_STOP_LOSS']
     TRAILING_STOP_LOSS = parsed_config['trading_options']['TRAILING_STOP_LOSS']
     TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
@@ -440,7 +461,7 @@ if __name__ == '__main__':
     client = Client(access_key, secret_key)
 
     # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
-    if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
+    if CUSTOM_LIST: tickers=[line.strip() for line in open(TICKERS_LIST)]
 
     # try to load all the coins bought by the bot if the file exists and is not empty
     coins_bought = {}
@@ -456,7 +477,7 @@ if __name__ == '__main__':
     volatility_cooloff = {}
 
     # use separate files for testing and live trading
-    if TEST_MODE:
+    if TEST_MODE or bot_paused:
         coins_bought_file_path = 'test_' + coins_bought_file_path
 
     # if saved coins_bought json file exists and it's not empty then load it
@@ -468,14 +489,22 @@ if __name__ == '__main__':
 
     if not TEST_MODE:
         print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
-        time.sleep(30)
+        #time.sleep(30)
 
     # load signalling modules
-    for module in SIGNALLING_MODULES:
-        mymodule[module] = importlib.import_module(module)
-        t = threading.Thread(target=mymodule[module].do_work, args=())
-        t.start()     
-
+    try:
+        if len(SIGNALLING_MODULES) > 0:
+            for module in SIGNALLING_MODULES:
+                print(f'Starting {module}')
+                mymodule[module] = importlib.import_module(module)
+                t = threading.Thread(target=mymodule[module].do_work, args=())
+                t.start()
+        else:
+            print(f'No modules to load {SIGNALLING_MODULES}')
+    except Exception as e:
+        print(e)
+                
+                
     # seed initial prices
     get_price()
     while True:
