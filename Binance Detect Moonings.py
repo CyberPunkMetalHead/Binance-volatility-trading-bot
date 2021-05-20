@@ -1,3 +1,17 @@
+"""
+Disclaimer
+
+All investment strategies and investments involve risk of loss.
+Nothing contained in this program, scripts, code or repositoy should be
+construed as investment advice.Any reference to an investment's past or
+potential performance is not, and should not be construed as, a recommendation
+or as a guarantee of any specific outcome or profit.
+
+By using this program you accept all liabilities,
+and that no claims can be made against the developers,
+or others connected with the program.
+"""
+
 # use for environment variables
 import os
 
@@ -15,8 +29,9 @@ import glob
 from colorama import init
 init()
 
-# needed for the binance API and websockets
+# needed for the binance API / websockets / Exception handling
 from binance.client import Client
+from binance.exceptions import BinanceAPIException
 
 # used for dates
 from datetime import date, datetime, timedelta
@@ -93,7 +108,11 @@ def get_price(add_to_historical=True):
                 initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
 
     if add_to_historical:
-        hsp_head = (hsp_head + 1) % (TIME_DIFFERENCE * RECHECK_INTERVAL)
+        hsp_head += 1
+
+        if hsp_head == RECHECK_INTERVAL:
+            hsp_head = 0
+
         historical_prices[hsp_head] = initial_price
 
     return initial_price
@@ -116,7 +135,7 @@ def wait_for_price():
         # sleep for exactly the amount of time required
         time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds())
 
-    print(f'not enough time has passed yet...Session profit:{session_profit:.2f}%')
+    print(f'Working...Session profit:{session_profit:.2f}% Est:${(QUANTITY * session_profit)/100:.2f}')
 
     # retreive latest prices
     get_price()
@@ -333,7 +352,7 @@ def sell_coins():
             # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
             coins_bought[coin]['take_profit'] = PriceChange + TRAILING_TAKE_PROFIT
             coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
-            if DEBUG: print(f"{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']}  and SL {coins_bought[coin]['stop_loss']} accordingly to lock-in profit")
+            if DEBUG: print(f"{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']:.2f}  and SL {coins_bought[coin]['stop_loss']:.2f} accordingly to lock-in profit")
             continue
 
         # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
@@ -363,14 +382,14 @@ def sell_coins():
 
                 if LOG_TRADES:
                     profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume'])* (1-(TRADING_FEE*2)) # adjust for trading fee here
-                    write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%")
+                    write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange-(TRADING_FEE*2):.2f}%")
                     session_profit=session_profit + (PriceChange-(TRADING_FEE*2))
             continue
 
         # no action; print once every TIME_DIFFERENCE
         if hsp_head == 1:
             if len(coins_bought)>0:
-                print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange:.2f}%{txcolors.DEFAULT}')
+                print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange-(TRADING_FEE*2):.2f}% Est:${(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.2f}{txcolors.DEFAULT}')
             else:
                  print(f'Not holding any coins')
     return coins_sold
