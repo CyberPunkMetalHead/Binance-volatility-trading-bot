@@ -2,7 +2,7 @@ from tradingview_ta import TA_Handler, Interval, Exchange
 import os
 import time
 
-INTERVAL = Interval.INTERVAL_5_MINUTES #Timeframe for analysis
+INTERVAL = Interval.INTERVAL_1_MINUTE #Timeframe for analysis
 
 EXCHANGE = 'BINANCE'
 SCREENER = 'CRYPTO'
@@ -48,8 +48,8 @@ def do_work():
             with open('signals/paused.exc','a+') as f:
                 f.write('yes')
         else:
-            os.remove('signals/paused.exc')
-
-            
+            if os.path.isfile("signals/paused.exc"):
+                os.remove('signals/paused.exc')
+                        
         print(f'pausebotmod: Waiting {TIME_TO_WAIT} minutes for next market checkup')    
         time.sleep((TIME_TO_WAIT*60))

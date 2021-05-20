@@ -177,26 +177,33 @@ def external_signals():
         for line in open(filename):
             symbol = line.strip()
             external_list[symbol] = symbol
-        os.remove(filename)
+        try:
+            os.remove(filename)
+        except:
+            print(f'{txcolors.WARNING}Could not remove external signalling file{txcolors.DEFAULT}')
 
     return external_list
 
 def pause_bot():
     global bot_paused
     
-    if os.path.isfile("signals/paused.exc"):
+    while os.path.isfile("signals/paused.exc"):
         pause = True
         if bot_paused == False:
             print(f'{txcolors.WARNING}Entering test mode due to change in market conditions{txcolors.DEFAULT}')
             bot_paused = True
-            #coins_bought_file_path = 'test_coins_bought.json'
+        else:
+            print(f'{txcolors.WARNING}Buying paused{txcolors.DEFAULT}')
+        coins_sold = sell_coins()
+        remove_from_portfolio(coins_sold)
+        time.sleep(5)
+            
     else:
         pause = False 
         if  bot_paused == True:
             print(f'{txcolors.WARNING}Resuming normal mode due to change in market conditions{txcolors.DEFAULT}')
             bot_paused = False
-            #if not TEST_MODE: coins_bought_file_path = 'coins_bought.json'
-            
+           
     return
 
     
@@ -242,7 +249,6 @@ def convert_volume():
 
 def buy():
     '''Place Buy market orders for each volatile coin found'''
-    global bot_paused
     volume, last_price = convert_volume()
     orders = {}
 
@@ -252,7 +258,7 @@ def buy():
         if coin not in coins_bought:
             print(f"{txcolors.BUY}Preparing to buy {volume[coin]} {coin}{txcolors.DEFAULT}")
 
-            if TEST_MODE or bot_paused:
+            if TEST_MODE:
                 orders[coin] = [{
                     'symbol': coin,
                     'orderId': 0,
@@ -306,7 +312,7 @@ def buy():
 def sell_coins():
     '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
 
-    global hsp_head, session_profit, bot_paused
+    global hsp_head, session_profit
 
     last_price = get_price(False) # don't populate rolling window
     coins_sold = {}
