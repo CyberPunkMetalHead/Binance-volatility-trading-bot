@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: binance-bot
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      - PROD_ACCESS_KEY
+      - PROD_SECRET_KEY
+      - TEST_ACCESS_KEY
+      - TEST_SECRET_KEY
+      - TEST_MODE
+      - LOG_TRADES
+      - LOG_FILE
+      - BINANCE_US
+      - CHANGE_IN_PRICE
+      - MAX_COINS
+      - PAIR_WITH
+      - STOP_LOSS
+      - TAKE_PROFIT
+      - TIME_DIFFERENCE

@@ -399,7 +399,8 @@ def remove_from_portfolio(coins_sold):
 
 def write_log(logline):
     timestamp = datetime.now().strftime("%d/%m %H:%M:%S")
-    with open(LOG_FILE,'a+') as f:
+    log_path = os.path.join(LOG_DIR, LOG_FILE)
+    with open(log_path,'a+') as f:
         f.write(timestamp + ' ' + logline + '\n')
 
 
@@ -422,7 +423,9 @@ if __name__ == '__main__':
     # Load system vars
     TEST_MODE = parsed_config['script_options']['TEST_MODE']
     LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
+    LOG_DIR = parsed_config['script_options'].get('LOG_DIR')
     LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
+    BINANCE_US = parsed_config['script_options'].get('BINANCE_US')
     DEBUG_SETTING = parsed_config['script_options'].get('DEBUG')
 
     # Load trading vars
@@ -452,7 +455,7 @@ if __name__ == '__main__':
      
 
     # Authenticate with the client, Ensure API key is good before continuing
-    client = Client(access_key, secret_key)
+    client = Client(access_key, secret_key, tld='us' if BINANCE_US else 'com')
     api_ready, msg = test_api_key(client, BinanceAPIException)
     if api_ready is not True:
         exit(f'{txcolors.SELL_LOSS}{msg}{txcolors.DEFAULT}')
@@ -463,9 +466,6 @@ if __name__ == '__main__':
     # try to load all the coins bought by the bot if the file exists and is not empty
     coins_bought = {}
 
-    # path to the saved coins_bought file
-    coins_bought_file_path = 'coins_bought.json'
-
     # rolling window of prices; cyclical queue
     historical_prices = [None] * (TIME_DIFFERENCE * RECHECK_INTERVAL)
     hsp_head = -1
@@ -473,9 +473,12 @@ if __name__ == '__main__':
     # prevent including a coin in volatile_coins if it has already appeared there less than TIME_DIFFERENCE minutes ago
     volatility_cooloff = {}
 
+    # path to the saved coins_bought file
     # use separate files for testing and live trading
     if TEST_MODE:
-        coins_bought_file_path = 'test_' + coins_bought_file_path
+        coins_bought_file_path = os.path.join(LOG_DIR, 'test_coins_bought.json')
+    else:
+        coins_bought_file_path = os.path.join(LOG_DIR, 'coins_bought.json')
 
     # if saved coins_bought json file exists and it's not empty then load it
     if os.path.isfile(coins_bought_file_path) and os.stat(coins_bought_file_path).st_size!= 0:
@@ -492,7 +495,7 @@ if __name__ == '__main__':
     # load signalling modules
     for module in SIGNALLING_MODULES:
         mymodule[module] = importlib.import_module(module)
-        t = threading.Thread(target=mymodule[module].do_work, args=())
+        t = threading.Thread(target=mymodule[module].do_work, args=("signalsample_us.txt",) if BINANCE_US else ())
         t.start()     
 
     # seed initial prices
