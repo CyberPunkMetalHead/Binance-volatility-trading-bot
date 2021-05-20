@@ -483,7 +483,7 @@ if __name__ == '__main__':
     volatility_cooloff = {}
 
     # use separate files for testing and live trading
-    if TEST_MODE or bot_paused:
+    if TEST_MODE:
         coins_bought_file_path = 'test_' + coins_bought_file_path
 
     # if saved coins_bought json file exists and it's not empty then load it
