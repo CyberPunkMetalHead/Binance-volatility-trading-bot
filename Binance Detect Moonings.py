@@ -1,3 +1,17 @@
+"""
+Disclaimer
+
+All investment strategies and investments involve risk of loss.
+Nothing contained in this program, scripts, code or repositoy should be
+construed as investment advice.Any reference to an investment's past or
+potential performance is not, and should not be construed as, a recommendation
+or as a guarantee of any specific outcome or profit.
+
+By using this program you accept all liabilities,
+and that no claims can be made against the developers,
+or others connected with the program.
+"""
+
 # use for environment variables
 import os
 
@@ -93,9 +107,13 @@ def get_price(add_to_historical=True):
                 initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
 
     if add_to_historical:
-        hsp_head = (hsp_head + 1) % (TIME_DIFFERENCE * RECHECK_INTERVAL)
-        historical_prices[hsp_head] = initial_price
+        hsp_head += 1
 
+        if hsp_head == RECHECK_INTERVAL:
+            hsp_head = 0
+            
+        historical_prices[hsp_head] = initial_price
+        
     return initial_price
 
 
