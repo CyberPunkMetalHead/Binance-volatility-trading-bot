@@ -362,9 +362,9 @@ def sell_coins():
                 # Log trade
 
                 if LOG_TRADES:
-                    profit = (LastPrice - BuyPrice) * coins_sold[coin]['volume']
+                    profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume'])* (1-(TRADING_FEE*2)) # adjust for trading fee here
                     write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%")
-                    session_profit=session_profit + PriceChange
+                    session_profit=session_profit + (PriceChange-(TRADING_FEE*2))
             continue
 
         # no action; print once every TIME_DIFFERENCE
@@ -451,6 +451,7 @@ if __name__ == '__main__':
     USE_TRAILING_STOP_LOSS = parsed_config['trading_options']['USE_TRAILING_STOP_LOSS']
     TRAILING_STOP_LOSS = parsed_config['trading_options']['TRAILING_STOP_LOSS']
     TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
+    TRADING_FEE = parsed_config['trading_options']['TRADING_FEE']
     SIGNALLING_MODULES = parsed_config['trading_options']['SIGNALLING_MODULES']
     if DEBUG_SETTING or args.debug:
         DEBUG = True
