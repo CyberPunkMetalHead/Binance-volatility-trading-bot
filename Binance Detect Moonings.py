@@ -190,7 +190,7 @@ def pause_bot():
     while os.path.isfile("signals/paused.exc"):
         pause = True
         if bot_paused == False:
-            print(f'{txcolors.WARNING}Entering test mode due to change in market conditions{txcolors.DEFAULT}')
+            print(f'{txcolors.WARNING}Pausing buying due to change in market conditions{txcolors.DEFAULT}')
             bot_paused = True
         else:
             print(f'{txcolors.WARNING}Buying paused{txcolors.DEFAULT}')
@@ -201,7 +201,7 @@ def pause_bot():
     else:
         pause = False 
         if  bot_paused == True:
-            print(f'{txcolors.WARNING}Resuming normal mode due to change in market conditions{txcolors.DEFAULT}')
+            print(f'{txcolors.WARNING}Resuming buying due to change in market conditions{txcolors.DEFAULT}')
             bot_paused = False
            
     return
