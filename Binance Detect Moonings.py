@@ -185,7 +185,7 @@ def external_signals():
     return external_list
 
 def pause_bot():
-    global bot_paused
+    global bot_paused, session_profit
     
     while os.path.isfile("signals/paused.exc"):
         pause = True
@@ -193,10 +193,10 @@ def pause_bot():
             print(f'{txcolors.WARNING}Pausing buying due to change in market conditions{txcolors.DEFAULT}')
             bot_paused = True
         else:
-            print(f'{txcolors.WARNING}Buying paused{txcolors.DEFAULT}')
+            print(f'{txcolors.WARNING}Buying paused{txcolors.DEFAULT} Session profit:{session_profit:.2f}%')
         coins_sold = sell_coins()
         remove_from_portfolio(coins_sold)
-        time.sleep(5)
+        time.sleep((TIME_DIFFERENCE * 60) / RECHECK_INTERVAL)
             
     else:
         pause = False 
@@ -331,7 +331,7 @@ def sell_coins():
         if float(last_price[coin]['price']) > TP and USE_TRAILING_STOP_LOSS:
          
             # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
-            coins_bought[coin]['take_profit'] += TRAILING_TAKE_PROFIT
+            coins_bought[coin]['take_profit'] = PriceChange + TRAILING_TAKE_PROFIT
             coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
             if DEBUG: print(f"{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']}  and SL {coins_bought[coin]['stop_loss']} accordingly to lock-in profit")
             continue
@@ -369,8 +369,10 @@ def sell_coins():
 
         # no action; print once every TIME_DIFFERENCE
         if hsp_head == 1:
-            print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange:.2f}%{txcolors.DEFAULT}')
-
+            if len(coins_bought)>0:
+                print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange:.2f}%{txcolors.DEFAULT}')
+            else:
+                 print(f'Not holding any coins')
     return coins_sold
 
 
