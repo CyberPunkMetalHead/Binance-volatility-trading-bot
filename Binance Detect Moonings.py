@@ -29,8 +29,9 @@ import glob
 from colorama import init
 init()
 
-# needed for the binance API and websockets
+# needed for the binance API / websockets / Exception handling
 from binance.client import Client
+from binance.exceptions import BinanceAPIException
 
 # used for dates
 from datetime import date, datetime, timedelta
@@ -198,7 +199,7 @@ def external_signals():
         try:
             os.remove(filename)
         except:
-            print(f'{txcolors.WARNING}Could not remove external signalling file{txcolors.DEFAULT}')
+            if DEBUG: print(f'{txcolors.WARNING}Could not remove external signalling file{txcolors.DEFAULT}')
 
     return external_list
 
@@ -224,7 +225,6 @@ def pause_bot():
            
     return
 
-    
 def convert_volume():
     '''Converts the volume given in QUANTITY from USDT to the each coin's volume'''
 
@@ -438,7 +438,7 @@ if __name__ == '__main__':
     mymodule = {}
     global bot_paused
     bot_paused = False
-    
+
     DEFAULT_CONFIG_FILE = 'config.yml'
     DEFAULT_CREDS_FILE = 'creds.yml'
 
@@ -484,8 +484,11 @@ if __name__ == '__main__':
         print(f'Your credentials have been loaded from {creds_file}')
      
 
-    # Authenticate with the client
+    # Authenticate with the client, Ensure API key is good before continuing
     client = Client(access_key, secret_key)
+    #api_ready, msg = test_api_key(client, BinanceAPIException)
+    #if api_ready is not True:
+    #    exit(f'{txcolors.SELL_LOSS}{msg}{txcolors.DEFAULT}')
 
     # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
     if CUSTOM_LIST: tickers=[line.strip() for line in open(TICKERS_LIST)]
@@ -515,24 +518,23 @@ if __name__ == '__main__':
     print('Press Ctrl-Q to stop the script')
 
     if not TEST_MODE:
-        print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
-        #time.sleep(30)
-
+        if not args.notimeout: # if notimeout skip this (fast for dev tests)
+            print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
+            time.sleep(30)
+ 
     signals = glob.glob("signals/*.exs")
     for filename in signals:
         for line in open(filename):
             try:
                 os.remove(filename)
             except:
-                print(f'{txcolors.WARNING}Could not remove external signalling file {filename}{txcolors.DEFAULT}')
+                if DEBUG: print(f'{txcolors.WARNING}Could not remove external signalling file {filename}{txcolors.DEFAULT}')
 
-    signals = glob.glob("signals/*.exc")
-    for filename in signals:
-        for line in open(filename):
-            try:
-                os.remove(filename)
-            except:
-                print(f'{txcolors.WARNING}Could not remove external signalling file {filename}{txcolors.DEFAULT}')
+    if os.path.isfile("signals/paused.exc"):
+        try:
+            os.remove("signals/paused.exc")
+        except:
+            if DEBUG: print(f'{txcolors.WARNING}Could not remove external signalling file {filename}{txcolors.DEFAULT}')
 
     # load signalling modules
     try:
