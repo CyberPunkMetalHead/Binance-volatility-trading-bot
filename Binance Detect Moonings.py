@@ -193,7 +193,7 @@ def pause_bot():
             print(f'{txcolors.WARNING}Pausing buying due to change in market conditions{txcolors.DEFAULT}')
             bot_paused = True
         else:
-            print(f'{txcolors.WARNING}Buying paused{txcolors.DEFAULT} Session profit:{session_profit:.2f}%')
+            print(f'{txcolors.WARNING}Buying paused{txcolors.DEFAULT} Session profit:{session_profit:.2f}% Est:${(QUANTITY * session_profit)/100:.2f}')
         coins_sold = sell_coins()
         remove_from_portfolio(coins_sold)
         time.sleep((TIME_DIFFERENCE * 60) / RECHECK_INTERVAL)
@@ -333,7 +333,7 @@ def sell_coins():
             # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
             coins_bought[coin]['take_profit'] = PriceChange + TRAILING_TAKE_PROFIT
             coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
-            if DEBUG: print(f"{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']}  and SL {coins_bought[coin]['stop_loss']} accordingly to lock-in profit")
+            if DEBUG: print(f"{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']:.2f}  and SL {coins_bought[coin]['stop_loss']:.2f} accordingly to lock-in profit")
             continue
 
         # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
