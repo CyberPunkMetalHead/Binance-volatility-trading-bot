@@ -517,7 +517,7 @@ if __name__ == '__main__':
 
     if not TEST_MODE:
         print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
-        #time.sleep(30)
+        time.sleep(30)
 
     # load signalling modules
     try:
