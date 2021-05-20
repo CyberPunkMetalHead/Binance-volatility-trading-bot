@@ -108,7 +108,11 @@ def get_price(add_to_historical=True):
                 initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
 
     if add_to_historical:
-        hsp_head = (hsp_head + 1) % (TIME_DIFFERENCE * RECHECK_INTERVAL)
+        hsp_head += 1
+
+        if hsp_head == RECHECK_INTERVAL:
+            hsp_head = 0
+
         historical_prices[hsp_head] = initial_price
 
     return initial_price
