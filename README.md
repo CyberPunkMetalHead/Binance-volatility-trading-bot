@@ -19,71 +19,14 @@ The bot will listen to changes in price accross all coins on Binance. By default
 You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/2021/05/08/how-to-code-a-binance-trading-bot-that-detects-the-most-volatile-coins-on-binance/) for a step-by-step walkthrough
 
 ## READ BEFORE USE
-1. If you use the mainnet, you will be using REAL money.
-2. To ensure you do not do this, ALWAYS check the `TESTNET` variable in the script.
+1. If you set `TEST_MODE` to `True`, you will be using REAL money.
+2. Setting `TEST_MODE` to `False` still uses your prod keys, but does not execute buys or sells.
 3. This might change when you pull / rebase. Always review (we're hoping to param this.)
 
 
-## Usage
+## Installation, Setup and Usage
+Please refer to our [wiki page](https://github.com/CyberPunkMetalHead/Binance-volatility-trading-bot/wiki/Setup-Guide)
 
-1. Install Dependencies
-    - Easy mode (might clash with current depends)
-        ```sh
-        pip install -r requirements.txt
-        ```
-    - Prefered Method (venv)
-        ```sh
-        python3 -m venv .venv
-      
-        source .venv/bin/activate # linux
-        .\.venv/scripts/activate # windows
-    
-        pip install -r requirements.txt
-        ```
-
-
-2. Copy `creds.example.yml` to `creds.yml` (or whatever you want.) and update the creds.
-
-    ```sh
-    # linux: Copy file over.
-    cp creds.example.yml creds.yml
-
-    # windows: either copy the file in explorer and rename to 'creds.yml' or use
-    copy creds.example.yml creds.yml
-    
-    # powershell
-    Copy-Item creds.example.yml -Destination creds.yml
-    ```
-    
-    - Edit the file.
-    
-    ```yml
-    # MAIN NET
-    prod:
-        access_key: replace_me
-        secret_key: replace_me
-
-    # TEST NET
-    test:
-        access_key: replace_me
-        secret_key: replace_me
-    ```
-
-
-3. Configure input params as in `config.yml`
-
-4. Run the script
-    - Standard 
-        ```sh
-        python3 Binance\ Detect\ Moonings.py
-        ```
-    - Background process (**linux only**)
-        ```sh
-        nohup python3 -u Binance\ Detect\ Moonings.py >> log.txt 2>&1 &
-        ```
-        The logs are stored in log.txt. To stop the process either look in your process list with `ps aux | grep -i python3` and kill with `kill PROCESS_ID` or `killall python3` when you know what you're doing.
-
-5. Use the `--help` flag if you want to see supported arguments
 
 ## Troubleshooting
 
