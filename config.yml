@@ -38,7 +38,7 @@ trading_options:
   CHANGE_IN_PRICE: 10
 
   # define in % when to sell a coin that's not making a profit
-  STOP_LOSS: 2
+  STOP_LOSS: 5
 
   # define in % when to take profit on a profitable coin
   TAKE_PROFIT: .8
@@ -57,7 +57,11 @@ trading_options:
   TRAILING_STOP_LOSS: .4
   TRAILING_TAKE_PROFIT: .1
   
+  # Trading fee in % per trade.
+  TRADING_FEE: .075
+  
   SIGNALLING_MODULES:
-    - signalsamplemod
+    - pausebotmod
+    - samplesignalmod
     
   

@@ -12,6 +12,7 @@ and that no claims can be made against the developers,
 or others connected with the program.
 """
 
+
 # use for environment variables
 import os
 
@@ -50,7 +51,7 @@ from helpers.parameters import (
 
 # Load creds modules
 from helpers.handle_creds import (
-    load_correct_creds, test_api_key
+    load_correct_creds
 )
 
 
@@ -63,12 +64,13 @@ class txcolors:
     DIM = '\033[2m\033[35m'
     DEFAULT = '\033[39m'
 
+
 # tracks profit/loss each session
 global session_profit
 session_profit = 0
 
+
 # print with timestamps
-import sys
 old_out = sys.stdout
 class St_ampe_dOut:
     """Stamped stdout."""
@@ -108,7 +110,11 @@ def get_price(add_to_historical=True):
                 initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
 
     if add_to_historical:
-        hsp_head = (hsp_head + 1) % (TIME_DIFFERENCE * RECHECK_INTERVAL)
+        hsp_head += 1
+
+        if hsp_head == RECHECK_INTERVAL:
+            hsp_head = 0
+
         historical_prices[hsp_head] = initial_price
 
     return initial_price
@@ -127,17 +133,21 @@ def wait_for_price():
     coins_down = 0
     coins_unchanged = 0
 
+    pause_bot()
+
     if historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
+
         # sleep for exactly the amount of time required
         time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds())
 
-    print(f'not enough time has passed yet...Session profit:{session_profit:.2f}%')
+    print(f'Working...Session profit:{session_profit:.2f}% Est:${(QUANTITY * session_profit)/100:.2f}')
 
     # retreive latest prices
     get_price()
 
     # calculate the difference in prices
     for coin in historical_prices[hsp_head]:
+
         # minimum and maximum prices over time period
         min_price = min(historical_prices, key = lambda x: float("inf") if x is None else float(x[coin]['price']))
         max_price = max(historical_prices, key = lambda x: -1 if x is None else float(x[coin]['price']))
@@ -167,12 +177,14 @@ def wait_for_price():
 
         else:
             coins_unchanged +=1
+
     # Disabled until fix
     #print(f'Up: {coins_up} Down: {coins_down} Unchanged: {coins_unchanged}')
 
     # Here goes new code for external signalling
     externals = external_signals()
     exnumber = 0
+
     for excoin in externals:
         if excoin not in volatile_coins and excoin not in coins_bought and (len(coins_bought) + exnumber) < MAX_COINS:
             volatile_coins[excoin] = 1
@@ -192,9 +204,48 @@ def external_signals():
         for line in open(filename):
             symbol = line.strip()
             external_list[symbol] = symbol
-        os.remove(filename)
+        try:
+            os.remove(filename)
+        except:
+            if DEBUG: print(f'{txcolors.WARNING}Could not remove external signalling file{txcolors.DEFAULT}')
 
     return external_list
+
+
+def pause_bot():
+    '''Pause the script when exeternal indicators detect a bearish trend in the market'''
+    global bot_paused, session_profit
+
+    # start counting for how long the bot's been paused
+    start_time = time.perf_counter()
+
+    while os.path.isfile("signals/paused.exc"):
+
+        pause = True
+        if bot_paused == False:
+            print(f'{txcolors.WARNING}Pausing buying due to change in market conditions, stop loss and take profit will continue to work...{txcolors.DEFAULT}')
+            bot_paused = True
+
+
+        # Sell function needs to work even while paused
+        coins_sold = sell_coins()
+        remove_from_portfolio(coins_sold)
+
+        # pausing here
+        time.sleep((TIME_DIFFERENCE * 60) / RECHECK_INTERVAL)
+
+    else:
+        # stop counting the pause time
+        stop_time = time.perf_counter()
+        time_elapsed = timedelta(seconds=int(stop_time-start_time))
+        pause = False
+
+        # resume the bot and ser pause_bot to False
+        if  bot_paused == True:
+            print(f'{txcolors.WARNING}Resuming buying due to change in market conditions, total sleep time: {time_elapsed}{txcolors.DEFAULT}')
+            bot_paused = False
+
+    return
 
 
 def convert_volume():
@@ -239,7 +290,6 @@ def convert_volume():
 
 def buy():
     '''Place Buy market orders for each volatile coin found'''
-
     volume, last_price = convert_volume()
     orders = {}
 
@@ -305,7 +355,7 @@ def sell_coins():
 
     global hsp_head, session_profit
 
-    last_price = get_price(False) # don't populate rolling window
+    last_price = get_price(add_to_historical=True) # don't populate rolling window
     coins_sold = {}
 
     for coin in list(coins_bought):
@@ -319,18 +369,17 @@ def sell_coins():
         PriceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
 
         # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
-        if float(last_price[coin]['price']) > TP and USE_TRAILING_STOP_LOSS:
-            if DEBUG: print("TP reached, adjusting TP and SL accordingly to lock-in profit")
+        if LastPrice > TP and USE_TRAILING_STOP_LOSS:
 
             # increasing TP by TRAILING_TAKE_PROFIT (essentially next time to readjust SL)
             coins_bought[coin]['take_profit'] = PriceChange + TRAILING_TAKE_PROFIT
             coins_bought[coin]['stop_loss'] = coins_bought[coin]['take_profit'] - TRAILING_STOP_LOSS
-
+            if DEBUG: print(f"{coin} TP reached, adjusting TP {coins_bought[coin]['take_profit']:.2f}  and SL {coins_bought[coin]['stop_loss']:.2f} accordingly to lock-in profit")
             continue
 
         # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
-        if float(last_price[coin]['price']) < SL or (float(last_price[coin]['price']) > TP and not USE_TRAILING_STOP_LOSS):
-            print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange:.2f}%{txcolors.DEFAULT}")
+        if LastPrice < SL or LastPrice > TP and not USE_TRAILING_STOP_LOSS:
+            print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange-(TRADING_FEE*2):.2f}% Est:${(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.2f}{txcolors.DEFAULT}")
 
             # try to create a real order
             try:
@@ -354,14 +403,17 @@ def sell_coins():
                 # Log trade
 
                 if LOG_TRADES:
-                    profit = (LastPrice - BuyPrice) * coins_sold[coin]['volume']
-                    write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%")
-                    session_profit=session_profit + PriceChange
+                    profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume'])* (1-(TRADING_FEE*2)) # adjust for trading fee here
+                    write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange-(TRADING_FEE*2):.2f}%")
+                    session_profit=session_profit + (PriceChange-(TRADING_FEE*2))
             continue
 
         # no action; print once every TIME_DIFFERENCE
         if hsp_head == 1:
-            print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange:.2f}%{txcolors.DEFAULT}')
+            if len(coins_bought) > 0:
+                print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange-(TRADING_FEE*2):.2f}% Est:${(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.2f}{txcolors.DEFAULT}')
+            else:
+                 print(f'Not holding any coins')
 
     return coins_sold
 
@@ -405,9 +457,15 @@ def write_log(logline):
 
 
 if __name__ == '__main__':
+
     # Load arguments then parse settings
     args = parse_args()
     mymodule = {}
+
+    # set to false at Start
+    global bot_paused
+    bot_paused = False
+
     DEFAULT_CONFIG_FILE = 'config.yml'
     DEFAULT_CREDS_FILE = 'creds.yml'
 
@@ -436,9 +494,11 @@ if __name__ == '__main__':
     STOP_LOSS = parsed_config['trading_options']['STOP_LOSS']
     TAKE_PROFIT = parsed_config['trading_options']['TAKE_PROFIT']
     CUSTOM_LIST = parsed_config['trading_options']['CUSTOM_LIST']
+    TICKERS_LIST = parsed_config['trading_options']['TICKERS_LIST']
     USE_TRAILING_STOP_LOSS = parsed_config['trading_options']['USE_TRAILING_STOP_LOSS']
     TRAILING_STOP_LOSS = parsed_config['trading_options']['TRAILING_STOP_LOSS']
     TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
+    TRADING_FEE = parsed_config['trading_options']['TRADING_FEE']
     SIGNALLING_MODULES = parsed_config['trading_options']['SIGNALLING_MODULES']
     if DEBUG_SETTING or args.debug:
         DEBUG = True
@@ -453,12 +513,12 @@ if __name__ == '__main__':
 
     # Authenticate with the client, Ensure API key is good before continuing
     client = Client(access_key, secret_key)
-    api_ready, msg = test_api_key(client, BinanceAPIException)
-    if api_ready is not True:
-        exit(f'{txcolors.SELL_LOSS}{msg}{txcolors.DEFAULT}')
+    #api_ready, msg = test_api_key(client, BinanceAPIException)
+    #if api_ready is not True:
+    #    exit(f'{txcolors.SELL_LOSS}{msg}{txcolors.DEFAULT}')
 
     # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
-    if CUSTOM_LIST: tickers=[line.strip() for line in open('tickers.txt')]
+    if CUSTOM_LIST: tickers=[line.strip() for line in open(TICKERS_LIST)]
 
     # try to load all the coins bought by the bot if the file exists and is not empty
     coins_bought = {}
@@ -489,11 +549,33 @@ if __name__ == '__main__':
             print('WARNING: You are using the Mainnet and live funds. Waiting 30 seconds as a security measure')
             time.sleep(30)
 
+    signals = glob.glob("signals/*.exs")
+    for filename in signals:
+        for line in open(filename):
+            try:
+                os.remove(filename)
+            except:
+                if DEBUG: print(f'{txcolors.WARNING}Could not remove external signalling file {filename}{txcolors.DEFAULT}')
+
+    if os.path.isfile("signals/paused.exc"):
+        try:
+            os.remove("signals/paused.exc")
+        except:
+            if DEBUG: print(f'{txcolors.WARNING}Could not remove external signalling file {filename}{txcolors.DEFAULT}')
+
     # load signalling modules
-    for module in SIGNALLING_MODULES:
-        mymodule[module] = importlib.import_module(module)
-        t = threading.Thread(target=mymodule[module].do_work, args=())
-        t.start()
+    try:
+        if len(SIGNALLING_MODULES) > 0:
+            for module in SIGNALLING_MODULES:
+                print(f'Starting {module}')
+                mymodule[module] = importlib.import_module(module)
+                t = threading.Thread(target=mymodule[module].do_work, args=())
+                t.daemon = True
+                t.start()
+        else:
+            print(f'No modules to load {SIGNALLING_MODULES}')
+    except Exception as e:
+        print(e)
 
     # seed initial prices
     get_price()
