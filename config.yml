@@ -5,6 +5,7 @@ script_options:
   TEST_MODE: True
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
+  USE_MONGO: False # will use backend mongodb
 
 
 # These options apply to the trading methods the script executes
