@@ -1,6 +1,7 @@
 # Binance Volitility Trading Bot
 
-This Binance trading bot analyses the changes in price across all coins on Binance and place trades on the most volatile ones. 
+## Description
+This Binance trading bot analyses the changes in price across all coins on Binance and place trades on the most volatile ones. 
 In addition to that, this Binance trading algorithm will also keep track of all the coins bought and sell them according to your specified Stop Loss and Take Profit.
 
 
@@ -44,8 +45,18 @@ You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/202
 2. Copy `creds.example.yml` to `creds.yml` (or whatever you want.) and update the creds.
 
     ```sh
-    cp creds.example.yml > creds.yml
+    # linux: Copy file over.
+    cp creds.example.yml creds.yml
+
+    # windows: either copy the file in explorer and rename to 'creds.yml' or use
+    copy creds.example.yml creds.yml
+    
+    # powershell
+    Copy-Item creds.example.yml -Destination creds.yml
     ```
+    
+    - Edit the file.
+    
     ```yml
     # MAIN NET
     prod:
@@ -73,15 +84,15 @@ You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/202
         The logs are stored in log.txt. To stop the process either look in your process list with `ps aux | grep -i python3` and kill with `kill PROCESS_ID` or `killall python3` when you know what you're doing.
     - Systemd service (**linux only**)
     
-    	The systemd-version used for this setup is `219`, we'll be using a `venv` for python and `nano` for text-operations, the sample user is called `ec2-user` and the bot is cloned to `/home/ec2-user/bot`.
+        The systemd-version used for this setup is `219`, we'll be using a `venv` for python and `nano` for text-operations, the sample user is called `ec2-user` and the bot is cloned to `/home/ec2-user/bot`.
         
         `Paste code in nano = mouse-rightclick`
 
-    	`SAVE file in nano = CTRL + O followed by ENTER`
+        `SAVE file in nano = CTRL + O followed by ENTER`
         
-    	`EXIT file in nano = CTRL + X`
+        `EXIT file in nano = CTRL + X`
 
-    	Create the service config file via opening the texteditor 'nano'
+        Create the service config file via opening the texteditor 'nano'
         ```sh
         sudo nano /lib/systemd/system/binancebot.service
         ```
@@ -113,39 +124,39 @@ You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/202
         Paste the following code into the file (rightclick), SAVE and EXIT
         ```sh
         template(name="bot-tmplt" type="string"
-        		 string="%msg:1:$%\n"
-        		)
+                 string="%msg:1:$%\n"
+                )
         if $programname == "binance-bot" then /var/log/binancebot/bot.log;bot-tmplt
         & stop
-		```
+        ```
 
-		Create the logfile folder
-		```sh
+        Create the logfile folder
+        ```sh
         sudo mkdir /var/log/binancebot
         ```
 
         Just to be on the safe side: Create the logfile in the folder, SAVE and EXIT
-		```sh
+        ```sh
         sudo nano /var/log/binancebot/bot.log
         ```
 
         Refresh services list
-		```sh
+        ```sh
         sudo systemctl daemon-reload
         ```
 
         Restart rsyslog service (i think this could be skipped as we are rebooting soon)
-		```sh
+        ```sh
         sudo systemctl restart rsyslog
         ```
 
         Enable the Binance Bot service to run at system boot
-		```sh
+        ```sh
         sudo systemctl enable binancebot
         ```
 
         Reboot the machine
-		```sh
+        ```sh
         sudo reboot
         ```
 
@@ -187,3 +198,12 @@ You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/202
 1. Read the [FAQ](FAQ.md)
 2. Open an issue / check us out on `#troubleshooting` at [Discord](https://discord.gg/buD27Dmvu3) 🚀 
     - Do not spam, do not berate, we are all humans like you, this is an open source project, not a full time job. 
+
+## 💥 Disclaimer
+
+All investment strategies and investments involve risk of loss. 
+**Nothing contained in this program, scripts, code or repositoy should be construed as investment advice.**
+Any reference to an investment's past or potential performance is not, 
+and should not be construed as, a recommendation or as a guarantee of 
+any specific outcome or profit.
+By using this program you accept all liabilities, and that no claims can be made against the developers or others connected with the program.
