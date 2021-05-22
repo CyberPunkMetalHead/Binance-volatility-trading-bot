@@ -280,8 +280,11 @@ def sell_coins():
             # run the else block if coin has been sold and create a dict for each coin sold
             else:
                 coins_sold[coin] = coins_bought[coin]
-                # Log trade
 
+                # prevent system from buying this coin for the next TIME_DIFFERENCE minutes
+                volatility_cooloff[coin] = datetime.now()
+
+                # Log trade
                 if LOG_TRADES:
                     profit = (LastPrice - BuyPrice) * coins_sold[coin]['volume']
                     write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%")
