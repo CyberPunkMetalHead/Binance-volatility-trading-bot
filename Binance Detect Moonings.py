@@ -214,31 +214,30 @@ def external_signals():
 
 def pause_bot():
     '''Pause the script when exeternal indicators detect a bearish trend in the market'''
-    global bot_paused, session_profit
+    global bot_paused, session_profit, hsp_head
 
     # start counting for how long the bot's been paused
     start_time = time.perf_counter()
 
     while os.path.isfile("signals/paused.exc"):
 
-        pause = True
         if bot_paused == False:
             print(f'{txcolors.WARNING}Pausing buying due to change in market conditions, stop loss and take profit will continue to work...{txcolors.DEFAULT}')
             bot_paused = True
 
-
         # Sell function needs to work even while paused
         coins_sold = sell_coins()
         remove_from_portfolio(coins_sold)
+        get_price(True)
 
         # pausing here
+        if hsp_head == 1: print(f'Paused...Session profit:{session_profit:.2f}% Est:${(QUANTITY * session_profit)/100:.2f}')
         time.sleep((TIME_DIFFERENCE * 60) / RECHECK_INTERVAL)
 
     else:
         # stop counting the pause time
         stop_time = time.perf_counter()
         time_elapsed = timedelta(seconds=int(stop_time-start_time))
-        pause = False
 
         # resume the bot and ser pause_bot to False
         if  bot_paused == True:
@@ -355,7 +354,8 @@ def sell_coins():
 
     global hsp_head, session_profit
 
-    last_price = get_price(add_to_historical=True) # don't populate rolling window
+    last_price = get_price(False) # don't populate rolling window
+    #last_price = get_price(add_to_historical=True) # don't populate rolling window
     coins_sold = {}
 
     for coin in list(coins_bought):
@@ -412,9 +412,9 @@ def sell_coins():
         if hsp_head == 1:
             if len(coins_bought) > 0:
                 print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange-(TRADING_FEE*2):.2f}% Est:${(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.2f}{txcolors.DEFAULT}')
-            else:
-                 print(f'Not holding any coins')
 
+    if hsp_head == 1 and len(coins_bought) == 0: print(f'Not holding any coins')
+ 
     return coins_sold
 
 
@@ -453,8 +453,6 @@ def write_log(logline):
     timestamp = datetime.now().strftime("%d/%m %H:%M:%S")
     with open(LOG_FILE,'a+') as f:
         f.write(timestamp + ' ' + logline + '\n')
-
-
 
 if __name__ == '__main__':
 
@@ -572,6 +570,7 @@ if __name__ == '__main__':
                 t = threading.Thread(target=mymodule[module].do_work, args=())
                 t.daemon = True
                 t.start()
+                time.sleep(2)
         else:
             print(f'No modules to load {SIGNALLING_MODULES}')
     except Exception as e:

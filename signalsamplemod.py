@@ -90,8 +90,8 @@ def do_work():
         print(f'Signalsample: Analyzing {len(pairs)} coins')
         signal_coins = analyze(pairs)
         if len(signal_coins) == 0:
-            print(f'Signalsample: No coins above {TA_BUY_THRESHOLD} threshold on both timeframes')
+            print(f'Signalsample: No coins above {TA_BUY_THRESHOLD} threshold on both timeframes. Waiting {TIME_TO_WAIT} minutes for next analysis')
         else:
-            print(f'Signalsample: {len(signal_coins)} coins above {TA_BUY_THRESHOLD} treshold on both timeframes')
-        print(f'Signalsample: Waiting {TIME_TO_WAIT} minutes for next analysis')
+            print(f'Signalsample: {len(signal_coins)} coins above {TA_BUY_THRESHOLD} treshold on both timeframes. Waiting {TIME_TO_WAIT} minutes for next analysis')
+
         time.sleep((TIME_TO_WAIT*60))
