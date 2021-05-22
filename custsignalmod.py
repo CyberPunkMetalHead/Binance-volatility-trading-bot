@@ -77,6 +77,5 @@ def do_work():
     while True:
         print(f'Custsignalmod: Analyzing {len(pairs)} coins')
         signal_coins = analyze(pairs)
-        print(f'Custsignalmod: {len(signal_coins)} coins above {OSC_THRESHOLD}/{len(OSC_INDICATORS)} oscillators and {MA_THRESHOLD}/{len(MA_INDICATORS)} moving averages.')
-        print(f'Custsignalmod: Waiting {TIME_TO_WAIT} minutes for next analysis')
+        print(f'Custsignalmod: {len(signal_coins)} coins above {OSC_THRESHOLD}/{len(OSC_INDICATORS)} oscillators and {MA_THRESHOLD}/{len(MA_INDICATORS)} moving averages Waiting {TIME_TO_WAIT} minutes for next analysis.')
         time.sleep((TIME_TO_WAIT*60))
