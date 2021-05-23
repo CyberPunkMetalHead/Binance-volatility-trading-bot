@@ -20,7 +20,7 @@ You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/202
 
 ## READ BEFORE USE
 1. If you use the `TEST_MODE: False` in your config, you will be using REAL money.
-2. To ensure you do not do this, ALWAYS check the `TES_MODE` configuration item in the config.yml file..
+2. To ensure you do not do this, ALWAYS check the `TEST_MODE` configuration item in the config.yml file..
 
 
 ## Usage
