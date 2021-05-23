@@ -53,6 +53,8 @@ from helpers.parameters import (
 from helpers.handle_creds import (
     load_correct_creds
 )
+from helpers.validate import ensure_user_has_enough_funds
+
 
 # for colourful logging to the console
 class txcolors:
@@ -301,24 +303,11 @@ def buy():
                 orders[coin] = [{
                     'symbol': coin,
                     'orderId': 0,
-                    'time': timestamp()
+                    'time': datetime.now().timestamp()
                 }]
-
 
                 # Log trade
                 if LOG_TRADES:
-                    if USE_MONGO:
-                        data = {
-                            "timestamp": timestamp(),
-                            "operation": "BUY",
-                            "amount": volume[coin],
-                            "symbol": coin,
-                            "bought_at": last_price[coin]['price'],
-                            "sold_at": 0,
-                            "profit_usd": 0,
-                            "profit_percentage": 0
-                        }
-                        insert(data, 'trades')
                     write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
 
                 continue
@@ -352,19 +341,6 @@ def buy():
 
                     # Log trade
                     if LOG_TRADES:
-                        if USE_MONGO:
-                            data = {
-                                "timestamp": timestamp(),
-                                "operation": "BUY",
-                                "amount": volume[coin],
-                                "symbol": coin,
-                                "bought_at": last_price[coin]['price'],
-                                "sold_at": 0,
-                                "profit_usd": 0,
-                                "profit_percentage": 0
-                            }
-                            insert(data, 'trades')
-                        
                         write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
 
 
@@ -432,19 +408,6 @@ def sell_coins():
                 # Log trade
                 if LOG_TRADES:
                     profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume'])* (1-(TRADING_FEE*2)) # adjust for trading fee here
-                    if USE_MONGO:
-                        data = {
-                            "timestamp": timestamp(),
-                            "operation": "SELL",
-                            "amount": volume[coin],
-                            "symbol": coin,
-                            "bought_at": BuyPrice,
-                            "sold_at": LastPrice,
-                            "profit_usd":profit,
-                            "profit_percentage": PriceChange-(TRADING_FEE*2)
-                        }
-                        insert(data, 'trades')
-                    
                     write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange-(TRADING_FEE*2):.2f}%")
                     session_profit=session_profit + (PriceChange-(TRADING_FEE*2))
             continue
@@ -473,27 +436,21 @@ def update_portfolio(orders, last_price, volume):
             'stop_loss': -STOP_LOSS,
             'take_profit': TAKE_PROFIT,
             }
-        
 
         # save the coins in a json file in the same directory
         with open(coins_bought_file_path, 'w') as file:
-            json.dump(coins_bought, file, indent=4, default=str)
+            json.dump(coins_bought, file, indent=4)
 
         print(f'Order with id {orders[coin][0]["orderId"]} placed and saved to file')
-        if USE_MONGO:
-
-            insert(coins_bought[coin], 'portfolio')
 
 
 def remove_from_portfolio(coins_sold):
     '''Remove coins sold due to SL or TP from portfolio'''
     for coin in coins_sold:
         coins_bought.pop(coin)
-        if USE_MONGO:
-            delete(coin, 'portfolio')
 
     with open(coins_bought_file_path, 'w') as file:
-        json.dump(coins_bought, file, indent=4, default=str)
+        json.dump(coins_bought, file, indent=4)
 
 
 def write_log(logline):
@@ -526,7 +483,6 @@ if __name__ == '__main__':
     TEST_MODE = parsed_config['script_options']['TEST_MODE']
     LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
     LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
-    USE_MONGO = parsed_config['script_options'].get('USE_MONGO')
     DEBUG_SETTING = parsed_config['script_options'].get('DEBUG')
 
     # Load trading vars
@@ -549,9 +505,6 @@ if __name__ == '__main__':
 
     if DEBUG_SETTING or args.debug:
         DEBUG = True
-    if USE_MONGO:
-        from helpers.database import *
-        initalize_db()
 
     # Load creds for correct environment
     access_key, secret_key = load_correct_creds(parsed_creds)
@@ -563,6 +516,11 @@ if __name__ == '__main__':
 
     # Authenticate with the client, Ensure API key is good before continuing
     client = Client(access_key, secret_key)
+    ready, message = ensure_user_has_enough_funds(client, MAX_COINS, QUANTITY,PAIR_WITH)
+    if not ready:
+        print(message)
+        exit()
+
     #api_ready, msg = test_api_key(client, BinanceAPIException)
     #if api_ready is not True:
     #    exit(f'{txcolors.SELL_LOSS}{msg}{txcolors.DEFAULT}')
