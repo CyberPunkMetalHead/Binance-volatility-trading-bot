@@ -24,7 +24,7 @@ You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/202
 
 
 ## Usage
-Please checkout our wiki
+[Please checkout our wiki](https://github.com/CyberPunkMetalHead/Binance-volatility-trading-bot/wiki/Setup-Guide)
 
 ## Troubleshooting
 
