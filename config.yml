@@ -5,7 +5,6 @@ script_options:
   TEST_MODE: True
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
-  USE_MONGO: False # will use backend mongodb
 
 
 # These options apply to the trading methods the script executes
@@ -14,7 +13,7 @@ trading_options:
   PAIR_WITH: USDT
 
   # Total ammount per trade
-  QUANTITY: 15
+  QUANTITY: 13
 
   # List of pairs to exlcude
   # by default we're excluding the most popular fiat pairs
@@ -27,7 +26,7 @@ trading_options:
     - UP
 
   # Maximum number of coints to hold
-  MAX_COINS: 7
+  MAX_COINS: 4
 
   # the amount of time in MINUTES to calculate the difference from the current price
   TIME_DIFFERENCE: 2
