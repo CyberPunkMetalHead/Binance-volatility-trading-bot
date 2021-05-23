@@ -19,8 +19,8 @@ The bot will listen to changes in price accross all coins on Binance. By default
 You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/2021/05/08/how-to-code-a-binance-trading-bot-that-detects-the-most-volatile-coins-on-binance/) for a step-by-step walkthrough
 
 ## READ BEFORE USE
-1. If you use the `TEST_MODE: True` in your config, you will be using REAL money.
-2. To ensure you do not do this, ALWAYS check the `TES_MODE` configuration item in the config.yml file..
+1. If you use the `TEST_MODE: False` in your config, you will be using REAL money.
+2. To ensure you do not do this, ALWAYS check the `TEST_MODE` configuration item in the config.yml file..
 
 
 ## Usage
