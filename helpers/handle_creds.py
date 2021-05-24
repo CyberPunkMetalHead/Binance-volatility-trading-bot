@@ -22,13 +22,11 @@ def test_api_key(client, BinanceAPIException):
     except BinanceAPIException as e:   
     
       
-        if e.code == -2015:
-            msg = "Your API key is not formatted correctly..."
-
-        elif e.code == -2014:
-            america = "If you are in america, you will have to update your TLD to use 'us'."
-            ip_b = "If you set an IP block on your keys make sure this IP address is allowed. check ipinfo.io/ip"
+        if e.code in  [-2015,-2014]:
             bad_key = "Your API key is not formatted correctly..."
+            america = "If you are in america, you will have to update the config to set AMERICAN_USER: True"
+            ip_b = "If you set an IP block on your keys make sure this IP address is allowed. check ipinfo.io/ip"
+            
             msg = f"Your API key is either incorrect, IP blocked, or incorrect tld/permissons...\n  most likely: {bad_key}\n  {america}\n  {ip_b}"
 
         elif e.code == -2021:
@@ -37,7 +35,8 @@ def test_api_key(client, BinanceAPIException):
             msg = f"Timestamp for this request was 1000ms ahead of the server's time.\n  {issue}\n  {desc}"
         
         else:
-            msg = e
+            msg = "Encountered an API Error code that was not caught nicely, please open issue...\n"
+            msg += e
 
         return False, msg
     
