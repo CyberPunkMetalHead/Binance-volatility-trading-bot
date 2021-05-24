@@ -8,6 +8,8 @@ import sys
 # used for directory handling
 import glob
 import time
+import threading
+
 OSC_INDICATORS = ['MACD', 'Stoch.RSI', 'Mom'] # Indicators to use in Oscillator analysis
 OSC_THRESHOLD = 2 # Must be less or equal to number of items in OSC_INDICATORS 
 MA_INDICATORS = ['EMA10', 'EMA20'] # Indicators to use in Moving averages analysis
@@ -75,6 +77,7 @@ def do_work():
         pairs=[line.strip() + PAIR_WITH for line in open(TICKERS)] 
     
     while True:
+        if not threading.main_thread().is_alive(): exit()
         print(f'Custsignalmod: Analyzing {len(pairs)} coins')
         signal_coins = analyze(pairs)
         print(f'Custsignalmod: {len(signal_coins)} coins above {OSC_THRESHOLD}/{len(OSC_INDICATORS)} oscillators and {MA_THRESHOLD}/{len(MA_INDICATORS)} moving averages Waiting {TIME_TO_WAIT} minutes for next analysis.')
