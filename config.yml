@@ -6,9 +6,14 @@ script_options:
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
 
+  # Set this to true if you are accessing binance from within the United States of America
+  # Need to change TLD
+  AMERICAN_USER: False
+
 
 # These options apply to the trading methods the script executes
 trading_options:
+ 
   # select what to pair the coins to and pull all coins paied with PAIR_WITH
   PAIR_WITH: USDT
 
