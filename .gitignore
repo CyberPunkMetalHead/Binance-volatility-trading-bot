@@ -1,4 +1,14 @@
-venv
-*coins*.json
-.idea
+creds.yml
 trades.txt
+
+__*__
+
+# Dont upload json files
+*.json
+
+# Virtual environment
+.venv
+
+# IDE settings
+.vscode
+.idea
