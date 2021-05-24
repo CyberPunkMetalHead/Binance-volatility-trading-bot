@@ -5,7 +5,6 @@ import os
 import sys
 # used for directory handling
 import glob
-import threading
 import time
 
 MY_EXCHANGE = 'BINANCE'
@@ -88,7 +87,6 @@ if __name__ == '__main__':
         pairs=[line.strip() + PAIR_WITH for line in open(TICKERS)] 
     
     while True:
-        if not threading.main_thread().is_alive(): exit()
         print(f'Analyzing {len(pairs)} coins')
         signal_coins = analyze(pairs)
         if len(signal_coins) == 0:
