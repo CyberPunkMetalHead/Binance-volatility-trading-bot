@@ -305,6 +305,14 @@ def buy():
                     'orderId': time.time(),
                     'time': datetime.now().timestamp()
                 }]
+                data = {
+                    "volume": volume[coin],
+                    "timestamp": time.time(),
+                    "action": "buy",
+                    "coin": coin,
+                    "lastPrice": last_price[coin]['price']
+                }
+                if MONGO: insert_trades(data, DATABASE_NAME)
 
                 # Log trade
                 if LOG_TRADES:
@@ -320,6 +328,8 @@ def buy():
                     type = 'MARKET',
                     quantity = volume[coin]
                 )
+
+
                 
 
             # error handling here in case position cannot be placed
@@ -339,6 +349,16 @@ def buy():
 
                 else:
                     print('Order returned, saving order to file')
+
+                    # save buy to trades
+                    data = {
+                        "volume": volume[coin],
+                        "timestamp": time.time(),
+                        "action": "buy",
+                        "coin": coin,
+                        "lastPrice": last_price[coin]['price']
+                    }
+                    if MONGO: insert_trades(data, DATABASE_NAME)
 
                     
                     # Log trade
@@ -421,7 +441,7 @@ def sell_coins():
                     made_profit = True
                 data = {
                     "volume": coins_sold[coin]['volume'],
-                    "testMode": TEST_MODE,
+                    "timestamp": time.time(),
                     "action": "sell",
                     "madeProfit": made_profit,
                     "coin": coin,
