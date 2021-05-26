@@ -11,6 +11,11 @@ script_options:
   AMERICAN_USER: False
 
 
+  # If you want to use mongodb for storage you can include this.
+  # Please do not open tickets for mongo support
+  USE_MONGO: False
+
+
 # These options apply to the trading methods the script executes
 trading_options:
  
