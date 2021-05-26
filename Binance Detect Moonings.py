@@ -54,6 +54,7 @@ from helpers.handle_creds import (
     load_correct_creds, test_api_key
 )
 
+from helpers.db import *
 
 # for colourful logging to the console
 class txcolors:
@@ -301,9 +302,11 @@ def buy():
             if TEST_MODE:
                 orders[coin] = [{
                     'symbol': coin,
-                    'orderId': 0,
+                    'orderId': time.time(),
                     'time': datetime.now().timestamp()
                 }]
+                
+
 
                 # Log trade
                 if LOG_TRADES:
@@ -319,6 +322,7 @@ def buy():
                     type = 'MARKET',
                     quantity = volume[coin]
                 )
+                
 
             # error handling here in case position cannot be placed
             except Exception as e:
@@ -337,6 +341,21 @@ def buy():
 
                 else:
                     print('Order returned, saving order to file')
+                    # Save data to backend
+                    if DEBUG:
+                        print(f'Ordering coin:\n {orders[coin]}')
+                        print(f'type: {type(orders[coin])}') # type: <class 'list'>
+      
+                    
+                    if MONGO: 
+                        # if we run in test, orders[coin] is a dict
+                        # if we run in prod, its a list
+                        # This should fix
+                        if isinstance(orders[coin], list) is True:
+                            data_for_db = orders[coin][0]
+                        else:
+                            data_for_db = orders[coin]
+                        insert_trades(data_for_db, DATABASE_NAME)
 
                     # Log trade
                     if LOG_TRADES:
@@ -390,8 +409,8 @@ def sell_coins():
                         side = 'SELL',
                         type = 'MARKET',
                         quantity = coins_bought[coin]['volume']
-
                     )
+                    
 
             # error handling here in case position cannot be placed
             except Exception as e:
@@ -400,15 +419,34 @@ def sell_coins():
             # run the else block if coin has been sold and create a dict for each coin sold
             else:
                 coins_sold[coin] = coins_bought[coin]
-
+                
                 # prevent system from buying this coin for the next TIME_DIFFERENCE minutes
                 volatility_cooloff[coin] = datetime.now()
+                profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume'])* (1-(TRADING_FEE*2)) # adjust for trading fee here
 
                 # Log trade
                 if LOG_TRADES:
-                    profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume'])* (1-(TRADING_FEE*2)) # adjust for trading fee here
+                    
                     write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange-(TRADING_FEE*2):.2f}%")
                     session_profit=session_profit + (PriceChange-(TRADING_FEE*2))
+
+                # Send event to database
+                if "-" in str(profit):
+                    made_profit = False
+                else:
+                    made_profit = True
+                data = {
+                    "volume": coins_sold[coin]['volume'],
+                    "testMode": TEST_MODE,
+                    "action": "sell",
+                    "madeProfit": made_profit,
+                    "coin": coin,
+                    "profit": profit,
+                    "buyPrice": BuyPrice,
+                    "lastPrice": last_price[coin]['price']
+                }
+                if MONGO: insert_trades(data, DATABASE_NAME)
+                    
             continue
 
         # no action; print once every TIME_DIFFERENCE
@@ -425,8 +463,7 @@ def update_portfolio(orders, last_price, volume):
     '''add every coin bought to our portfolio for tracking/selling later'''
     if DEBUG: print(orders)
     for coin in orders:
-
-        coins_bought[coin] = {
+        x = {
             'symbol': orders[coin][0]['symbol'],
             'orderid': orders[coin][0]['orderId'],
             'timestamp': orders[coin][0]['time'],
@@ -434,19 +471,41 @@ def update_portfolio(orders, last_price, volume):
             'volume': volume[coin],
             'stop_loss': -STOP_LOSS,
             'take_profit': TAKE_PROFIT,
-            }
-
-        # save the coins in a json file in the same directory
+        }
+        coins_bought[coin] = x 
+        
         with open(coins_bought_file_path, 'w') as file:
             json.dump(coins_bought, file, indent=4)
 
         print(f'Order with id {orders[coin][0]["orderId"]} placed and saved to file')
-
+    
+    # For some reason we cant add the
+    # if MONGO: stuff in the above loop.
+    # it causes the json file to be malformed...
+    # So this is the next best option...
+    for coin in orders:
+        x = {
+            'symbol': orders[coin][0]['symbol'],
+            'orderid': orders[coin][0]['orderId'],
+            'timestamp': orders[coin][0]['time'],
+            'bought_at': last_price[coin]['price'],
+            'volume': volume[coin],
+            'stop_loss': -STOP_LOSS,
+            'take_profit': TAKE_PROFIT,
+        }
+        if MONGO: insert_portfolio(x, DATABASE_NAME)
+        
 
 def remove_from_portfolio(coins_sold):
     '''Remove coins sold due to SL or TP from portfolio'''
     for coin in coins_sold:
         coins_bought.pop(coin)
+
+        if MONGO: 
+            # Delete item in db off order id.
+            item_to_remove = {"orderid":coins_sold[coin]['orderid'] }
+            delete_portolio_item(item_to_remove, DATABASE_NAME)
+
 
     with open(coins_bought_file_path, 'w') as file:
         json.dump(coins_bought, file, indent=4)
@@ -483,6 +542,7 @@ if __name__ == '__main__':
     LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
     LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
     DEBUG_SETTING = parsed_config['script_options'].get('DEBUG')
+    USE_MONGO = parsed_config['script_options'].get('USE_MONGO')
     AMERICAN_USER = parsed_config['script_options'].get('AMERICAN_USER')
 
     # Load trading vars
@@ -502,8 +562,20 @@ if __name__ == '__main__':
     TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
     TRADING_FEE = parsed_config['trading_options']['TRADING_FEE']
     SIGNALLING_MODULES = parsed_config['trading_options']['SIGNALLING_MODULES']
+
+
     if DEBUG_SETTING or args.debug:
         DEBUG = True
+    
+    if args.mongo or USE_MONGO is True:
+        MONGO = True
+        DATABASE_NAME = 'bvt'
+        if TEST_MODE:
+            DATABASE_NAME = DATABASE_NAME + '-test'
+            
+        # checks to see if dbs exist, if not, create dbs and tables
+        see_if_db_exists()
+
 
     # Load creds for correct environment
     access_key, secret_key = load_correct_creds(parsed_creds)
@@ -518,7 +590,9 @@ if __name__ == '__main__':
         client = Client(access_key, secret_key, tld='us')
     else:
         client = Client(access_key, secret_key)
-        
+    
+    
+
     # If the users has a bad / incorrect API key.
     # this will stop the script from starting, and display a helpful error.
     api_ready, msg = test_api_key(client, BinanceAPIException)
