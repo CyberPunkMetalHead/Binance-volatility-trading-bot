@@ -305,8 +305,6 @@ def buy():
                     'orderId': time.time(),
                     'time': datetime.now().timestamp()
                 }]
-                
-
 
                 # Log trade
                 if LOG_TRADES:
@@ -341,14 +339,8 @@ def buy():
 
                 else:
                     print('Order returned, saving order to file')
-                    # Save data to backend
-                    if DEBUG:
-                        print(f'Ordering coin:\n {orders[coin]}')
-                        print(f'type: {type(orders[coin])}') # type: <class 'list'>
-      
-                    
-                    
 
+                    
                     # Log trade
                     if LOG_TRADES:
                         write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
@@ -491,9 +483,12 @@ def update_portfolio(orders, last_price, volume):
 def remove_from_portfolio(coins_sold):
     '''Remove coins sold due to SL or TP from portfolio'''
     for coin in coins_sold:
+        if DEBUG:
+            print(f'REMOVING FROM PORTFOLIO\n{coins_sold[coin]}')
+        if MONGO:
+            x = {'orderid': coins_sold[coin]['orderid']}
+            delete_portolio_item(x, DATABASE_NAME)
         coins_bought.pop(coin)
-
-
 
     with open(coins_bought_file_path, 'w') as file:
         json.dump(coins_bought, file, indent=4)
@@ -560,13 +555,11 @@ if __name__ == '__main__':
         DATABASE_NAME = 'bvt'
         if TEST_MODE:
             DATABASE_NAME = DATABASE_NAME + '-test'
-            
         # checks to see if dbs exist, if not, create dbs and tables
         see_if_db_exists()
 
 
-    # Load creds for correct environment
-    access_key, secret_key = load_correct_creds(parsed_creds)
+    
 
     if DEBUG:
         print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
@@ -574,13 +567,13 @@ if __name__ == '__main__':
 
 
     # Authenticate with the client, Ensure API key is good before continuing
+    # Load creds
+    access_key, secret_key = load_correct_creds(parsed_creds)
     if AMERICAN_USER:
         client = Client(access_key, secret_key, tld='us')
     else:
         client = Client(access_key, secret_key)
     
-    
-
     # If the users has a bad / incorrect API key.
     # this will stop the script from starting, and display a helpful error.
     api_ready, msg = test_api_key(client, BinanceAPIException)
@@ -652,15 +645,11 @@ if __name__ == '__main__':
     get_price()
 
     while True:
+        # Get information 
         orders, last_price, volume = buy()
+
         update_portfolio(orders, last_price, volume)
         coins_sold = sell_coins()
-        
-        # handle DB operations
-        if coins_sold and MONGO:
-            for coin in coins_sold:
-                orderid = coins_sold[coin]['orderid']
-                delete_portolio_item(orderid, DATABASE_NAME)
 
         # remove from json
         remove_from_portfolio(coins_sold)

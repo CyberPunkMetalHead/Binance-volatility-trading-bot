@@ -1,6 +1,5 @@
 # These options apply to how the script will operate.
 script_options:
-  # Switch between testnet and mainnet
   # Setting this to False will use REAL funds, use at your own risk
   TEST_MODE: True
   LOG_TRADES: True
@@ -10,16 +9,13 @@ script_options:
   # Need to change TLD
   AMERICAN_USER: False
 
-
   # If you want to use mongodb for storage you can include this.
   # Please do not open tickets for mongo support
-
   USE_MONGO: False
 
 
 # These options apply to the trading methods the script executes
 trading_options:
- 
   # select what to pair the coins to and pull all coins paied with PAIR_WITH
   PAIR_WITH: USDT
 
