@@ -347,15 +347,7 @@ def buy():
                         print(f'type: {type(orders[coin])}') # type: <class 'list'>
       
                     
-                    if MONGO: 
-                        # if we run in test, orders[coin] is a dict
-                        # if we run in prod, its a list
-                        # This should fix
-                        if isinstance(orders[coin], list) is True:
-                            data_for_db = orders[coin][0]
-                        else:
-                            data_for_db = orders[coin]
-                        insert_trades(data_for_db, DATABASE_NAME)
+                    
 
                     # Log trade
                     if LOG_TRADES:
@@ -501,10 +493,6 @@ def remove_from_portfolio(coins_sold):
     for coin in coins_sold:
         coins_bought.pop(coin)
 
-        if MONGO: 
-            # Delete item in db off order id.
-            item_to_remove = {"orderid":coins_sold[coin]['orderid'] }
-            delete_portolio_item(item_to_remove, DATABASE_NAME)
 
 
     with open(coins_bought_file_path, 'w') as file:
@@ -662,8 +650,17 @@ if __name__ == '__main__':
 
     # seed initial prices
     get_price()
+
     while True:
         orders, last_price, volume = buy()
         update_portfolio(orders, last_price, volume)
         coins_sold = sell_coins()
+        
+        # handle DB operations
+        if coins_sold and MONGO:
+            for coin in coins_sold:
+                orderid = coins_sold[coin]['orderid']
+                delete_portolio_item(orderid, DATABASE_NAME)
+
+        # remove from json
         remove_from_portfolio(coins_sold)

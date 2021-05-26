@@ -13,6 +13,7 @@ script_options:
 
   # If you want to use mongodb for storage you can include this.
   # Please do not open tickets for mongo support
+
   USE_MONGO: False
 
 
