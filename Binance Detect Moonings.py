@@ -309,8 +309,8 @@ def buy():
                     "volume": volume[coin],
                     "timestamp": time.time(),
                     "action": "buy",
-                    "coin": coin,
-                    "lastPrice": last_price[coin]['price']
+                    "coin": str(coin),
+                    "buyPrice": float(last_price[coin]['price'])
                 }
                 if MONGO: insert_trades(data, DATABASE_NAME)
 
@@ -356,7 +356,7 @@ def buy():
                         "timestamp": time.time(),
                         "action": "buy",
                         "coin": coin,
-                        "lastPrice": last_price[coin]['price']
+                        "buyPrice": float(last_price[coin]['price'])
                     }
                     if MONGO: insert_trades(data, DATABASE_NAME)
 
@@ -447,7 +447,7 @@ def sell_coins():
                     "coin": coin,
                     "profit": profit,
                     "buyPrice": BuyPrice,
-                    "lastPrice": last_price[coin]['price']
+                    "sellPrice": LastPrice
                 }
                 if MONGO: insert_trades(data, DATABASE_NAME)
                     
@@ -492,10 +492,10 @@ def update_portfolio(orders, last_price, volume):
             'symbol': orders[coin][0]['symbol'],
             'orderid': orders[coin][0]['orderId'],
             'timestamp': orders[coin][0]['time'],
-            'bought_at': last_price[coin]['price'],
+            'buyPrice': float(last_price[coin]['price']),
             'volume': volume[coin],
-            'stop_loss': -STOP_LOSS,
-            'take_profit': TAKE_PROFIT,
+            'stopLoss': -STOP_LOSS,
+            'takeProfit': TAKE_PROFIT,
         }
         if MONGO: insert_portfolio(x, DATABASE_NAME)
         
