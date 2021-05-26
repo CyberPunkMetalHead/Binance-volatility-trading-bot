@@ -519,6 +519,8 @@ if __name__ == '__main__':
 
     # Default no debugging
     DEBUG = False
+    
+    MONGO = False
 
     # Load system vars
     TEST_MODE = parsed_config['script_options']['TEST_MODE']
