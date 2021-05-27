@@ -302,7 +302,7 @@ def buy():
             if TEST_MODE:
                 orders[coin] = [{
                     'symbol': coin,
-                    'orderId': time.time(),
+                    'orderId': fake_orderid(),
                     'time': datetime.now().timestamp()
                 }]
                 data = {
@@ -328,9 +328,6 @@ def buy():
                     type = 'MARKET',
                     quantity = volume[coin]
                 )
-
-
-                
 
             # error handling here in case position cannot be placed
             except Exception as e:
@@ -466,6 +463,7 @@ def sell_coins():
 def update_portfolio(orders, last_price, volume):
     '''add every coin bought to our portfolio for tracking/selling later'''
     if DEBUG: print(orders)
+    
     for coin in orders:
         x = {
             'symbol': orders[coin][0]['symbol'],
@@ -488,9 +486,14 @@ def update_portfolio(orders, last_price, volume):
     # it causes the json file to be malformed...
     # So this is the next best option...
     for coin in orders:
+        if TEST_MODE: 
+            order_id = fake_orderid()
+            if DEBUG: print(f"Running in test updating portfolio with fake orderid:{order_id}")
+        else:
+            order_id = orders[coin][0]['orderId']
         x = {
             'symbol': orders[coin][0]['symbol'],
-            'orderid': orders[coin][0]['orderId'],
+            'orderid': order_id,
             'timestamp': orders[coin][0]['time'],
             'buyPrice': float(last_price[coin]['price']),
             'volume': volume[coin],
@@ -503,11 +506,14 @@ def update_portfolio(orders, last_price, volume):
 def remove_from_portfolio(coins_sold):
     '''Remove coins sold due to SL or TP from portfolio'''
     for coin in coins_sold:
-        if DEBUG:
-            print(f'REMOVING FROM PORTFOLIO\n{coins_sold[coin]}')
+        
         if MONGO:
-            x = {'orderid': coins_sold[coin]['orderid']}
-            delete_portolio_item(x, DATABASE_NAME)
+            #x = {'orderid': coins_sold[coin]['orderid']}
+            x = {'symbol': coins_sold[coin]['symbol']}
+            delete_item = delete_portolio_item(x, DATABASE_NAME)
+            
+            
+
         coins_bought.pop(coin)
 
     with open(coins_bought_file_path, 'w') as file:

@@ -1,6 +1,11 @@
 from pymongo import MongoClient
+import random
 
 # SETUP
+def fake_orderid():
+    """returns a fake order id by hashing the current time"""
+    return random.randint(100000000,999999999)
+
 def my_client():
     return MongoClient('localhost', 27017)
 
@@ -39,7 +44,7 @@ def delete_portolio_item(data, database,table='portfolio'):
     db = client[database]
     table = db[table]
     x = table.delete_one(data)
-    return x
+    return x.raw_result
 
 def insert_portfolio(data,database,table='portfolio'):
     """inserts entry into porfolio collection
