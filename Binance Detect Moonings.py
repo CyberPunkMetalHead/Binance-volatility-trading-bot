@@ -673,11 +673,14 @@ if __name__ == '__main__':
     get_price()
 
     while True:
-        # Get information 
+        # Get current orders.
         orders, last_price, volume = buy()
-
-        update_portfolio(orders, last_price, volume)
+        if orders:
+             update_portfolio(orders, last_price, volume)
+    
+        # check to se if we're going to sell any coins
         coins_sold = sell_coins()
 
-        # remove from json
-        remove_from_portfolio(coins_sold)
+        if coins_sold:
+            # remove from json
+            remove_from_portfolio(coins_sold)

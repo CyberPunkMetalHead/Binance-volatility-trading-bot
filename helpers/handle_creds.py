@@ -21,7 +21,6 @@ def test_api_key(client, BinanceAPIException):
     
     except BinanceAPIException as e:   
     
-      
         if e.code in  [-2015,-2014]:
             bad_key = "Your API key is not formatted correctly..."
             america = "If you are in america, you will have to update the config to set AMERICAN_USER: True"
@@ -35,8 +34,7 @@ def test_api_key(client, BinanceAPIException):
             msg = f"Timestamp for this request was 1000ms ahead of the server's time.\n  {issue}\n  {desc}"
         
         else:
-            msg = "Encountered an API Error code that was not caught nicely, please open issue...\n"
-            msg += e
+            msg = f"Encountered an API Error code that was not caught nicely, please open issue...\n: {e}"
 
         return False, msg
     
