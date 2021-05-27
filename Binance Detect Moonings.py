@@ -361,7 +361,7 @@ def sell_coins():
     for coin in list(coins_bought):
         # define stop loss and take profit
         TP = float(coins_bought[coin]['bought_at']) + (float(coins_bought[coin]['bought_at']) * coins_bought[coin]['take_profit']) / 100
-        SL = float(coins_bought[coin]['bought_at']) + (float(coins_bought[coin]['bought_at']) * coins_bought[coin]['stop_loss']) / 100
+        SL = float(coins_bought[coin]['bought_at']) - (float(coins_bought[coin]['bought_at']) * coins_bought[coin]['stop_loss']) / 100
 
 
         LastPrice = float(last_price[coin]['price'])
