@@ -68,6 +68,9 @@ class txcolors:
 # tracks profit/loss each session
 global session_profit
 session_profit = 0
+# over max_orders buy() dont trade more
+global max_orders
+max_orders = 20
 
 
 # print with timestamps
@@ -289,14 +292,21 @@ def convert_volume():
 
 def buy():
     '''Place Buy market orders for each volatile coin found'''
+    global max_orders
     volume, last_price = convert_volume()
     orders = {}
 
     for coin in volume:
 
         # only buy if the there are no active trades on the coin
-        if coin not in coins_bought:
+        print("max_orders", max_orders)
+        if max_orders <= 0 :
+            print(f"max_orders reached, no more trade!!! Wait finish trade queue.")
+
+        if coin not in coins_bought and ( max_orders > 0):
             print(f"{txcolors.BUY}Preparing to buy {volume[coin]} {coin}{txcolors.DEFAULT}")
+            max_orders -= 1
+            print('max orders = ', max_orders)
 
             if TEST_MODE:
                 orders[coin] = [{
