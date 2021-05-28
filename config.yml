@@ -20,7 +20,8 @@ trading_options:
 
   # Total amount per trade (your base currency balance must be at least TRADE_SLOTS * QUANTITY)
   # Binance uses a minimum of 10 USDT per trade, add a bit extra to enable selling if the price drops.
-  # Recommended: no less than 12 USDT. Suggested: 15 or more.
+  # USDT - Recommended: no less than 12. Suggested: 15 or more.
+  # ETH - Recommended: no less than 0.006.
   QUANTITY: 0.006
 
   # List of trading pairs to exclude
@@ -34,7 +35,7 @@ trading_options:
     - UP
 
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * QUANTITY)
-  TRADE_SLOTS: 999
+  TRADE_SLOTS: 7
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 2
