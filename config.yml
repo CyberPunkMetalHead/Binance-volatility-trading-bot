@@ -1,12 +1,13 @@
 # These options apply to how the script will operate.
 script_options:
-  # Switch between testnet and mainnet
-  # Setting this to False will use REAL funds, use at your own risk
+  # Setting TEST_MODE to False will use REAL funds, use at your own risk!
   TEST_MODE: True
+  # Save trades to a log file.
   LOG_TRADES: True
+  # Specify the location of log file (default: trades.txt).
   LOG_FILE: 'trades.txt'
 
-  # Set this to true if you are accessing binance from within the United States of America
+  # Set this to true if you are accessing binance from within the United States of America.
   # Need to change TLD
   AMERICAN_USER: False
 
@@ -14,13 +15,13 @@ script_options:
 # These options apply to the trading methods the script executes
 trading_options:
  
-  # select your base currency to use for trading (trade for example USDT pairs)
-  PAIR_WITH: USDT
+  # select your base currency to use for trading pairs (for example USDT, ETH, BTC)
+  PAIR_WITH: ETH
 
-  # Total amount per trade (your base currency balance must be at least MAX_COINS * QUANTITY)
+  # Total amount per trade (your base currency balance must be at least TRADE_SLOTS * QUANTITY)
   # Binance uses a minimum of 10 USDT per trade, add a bit extra to enable selling if the price drops.
   # Recommended: no less than 12 USDT. Suggested: 15 or more.
-  QUANTITY: 15
+  QUANTITY: 0.006
 
   # List of trading pairs to exclude
   # by default we're excluding the most popular fiat pairs
@@ -32,21 +33,21 @@ trading_options:
     - DOWN
     - UP
 
-  # Maximum number of trade 'slots' at any time (your USDT balance must be at least MAX_COINS * QUANTITY)
-  MAX_COINS: 7
+  # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * QUANTITY)
+  TRADE_SLOTS: 999
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
-  TIME_DIFFERENCE: 2
+  TIME_DIFFERENCE: 1
 
   # Number of times to check for TP/SL during each TIME_DIFFERENCE (minimum: 1).
   # Don't spam the Binance API, you will be banned (max 1200 requests per minute per IP).
-  RECHECK_INTERVAL: 10
+  RECHECK_INTERVAL: 12
 
   # the difference in % between the first and second checks for the price.
-  CHANGE_IN_PRICE: 10
+  CHANGE_IN_PRICE: 1.25
 
   # define in % when to sell a coin that's not making a profit.
-  STOP_LOSS: 5
+  STOP_LOSS: 99
 
   # define in % when to take profit on a profitable coin.
   TAKE_PROFIT: .8
@@ -55,7 +56,7 @@ trading_options:
   CUSTOM_LIST: True
    
   # Name of custom tickers list
-  TICKERS_LIST: 'tickers.txt'
+  TICKERS_LIST: 'tickers_ETH.txt'
    
   # whether to use trailing stop loss or not; default is True
   USE_TRAILING_STOP_LOSS: True
@@ -69,9 +70,12 @@ trading_options:
   # If using 0.75% (using BNB for fees) you must have BNB in your account to cover trading fees.
   # If using BNB for fees, it MUST be enabled in your Binance 'Dashboard' page (checkbox).
   TRADING_FEE: .075
+
+  # show/hide additional data on bot screen. False = silent, True = spam (debug mode).
+  VERBOSE_MODE: False
   
   SIGNALLING_MODULES:
-    - pausebotmod
+#    - pausebotmod
     - signalsamplemod
     
   
