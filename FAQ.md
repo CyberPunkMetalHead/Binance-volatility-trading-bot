@@ -17,7 +17,7 @@
 | Question   |   Answer |
 |----------|-------------|
 |Why am I getting weird / unreliable values using testnet|  Testnet isn't for testing strategies. It's for testing functionality. We've talked about adding functionality to the main script to run against mainnet but with bogus buys. nothing yet. |
-| What type of funds are required for this to work in PROD |  Ensure you account has the following: <ul><li>BNB ~$5 USD (used for fees / transactions)</li><li>Atleast X USDT matching your QUANTITYxMAX_COINS  (>$15 USD but check config for 'QUANTITY')</li></ul> |
+| What type of funds are required for this to work in PROD |  Ensure you account has the following: <ul><li>BNB ~$5 USD (used for fees / transactions)</li><li>Atleast X USDT matching your QUANTITYxTRADE_SLOTS  (>$15 USD but check config for 'QUANTITY')</li></ul> |
 
 
 

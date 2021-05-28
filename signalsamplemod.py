@@ -1,3 +1,17 @@
+from helpers.parameters import (
+    parse_args, load_config
+)
+# Load arguments then parse settings
+args = parse_args()
+#get config file
+DEFAULT_CONFIG_FILE = 'config.yml'
+config_file = args.config if args.config else DEFAULT_CONFIG_FILE
+parsed_config = load_config(config_file)
+
+
+
+
+
 from tradingview_ta import TA_Handler, Interval, Exchange
 # use for environment variables
 import os
@@ -13,10 +27,10 @@ MY_SCREENER = 'CRYPTO'
 MY_FIRST_INTERVAL = Interval.INTERVAL_1_MINUTE
 MY_SECOND_INTERVAL = Interval.INTERVAL_5_MINUTES
 TA_BUY_THRESHOLD = 18 # How many of the 26 indicators to indicate a buy
-PAIR_WITH = 'USDT'
-TICKERS = 'signalsample.txt'
-TIME_TO_WAIT = 4 # Minutes to wait between analysis
-FULL_LOG = False # List anylysis result to console
+PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
+TICKERS = parsed_config['trading_options']['TICKERS_LIST']
+TIME_TO_WAIT = parsed_config['trading_options']['TIME_DIFFERENCE'] # Minutes to wait between analysis
+FULL_LOG = parsed_config['trading_options']['VERBOSE_MODE'] # List anylysis result to console
 
 def analyze(pairs):
     taMax = 0
