@@ -1,0 +1,15 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+python-binance = "==0.7.9"
+colorama = "==0.4.4"
+tradingview-ta = "==3.2.3"
+PyYAML = "==5.4.1"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

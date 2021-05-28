@@ -6,10 +6,15 @@ script_options:
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
 
+  # Used to print debugging statements in the script
+  DEBUG: True
+
   # Set this to true if you are accessing binance from within the United States of America
   # Need to change TLD
   AMERICAN_USER: False
 
+  # Modified to use testnet
+  TESTNET: False
 
 # These options apply to the trading methods the script executes
 trading_options:
@@ -32,8 +37,11 @@ trading_options:
     - DOWN
     - UP
 
+  # Maximum number of orders that can be placed
+  MAX_ORDERS: 10
+
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least MAX_COINS * QUANTITY)
-  MAX_COINS: 7
+  MAX_COINS: 20
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 2
@@ -43,13 +51,13 @@ trading_options:
   RECHECK_INTERVAL: 10
 
   # the difference in % between the first and second checks for the price.
-  CHANGE_IN_PRICE: 10
+  CHANGE_IN_PRICE: 1.5
 
   # define in % when to sell a coin that's not making a profit.
-  STOP_LOSS: 5
+  STOP_LOSS: 2.9
 
   # define in % when to take profit on a profitable coin.
-  TAKE_PROFIT: .8
+  TAKE_PROFIT: .6
 
   # Use custom tickers.txt list for filtering pairs.
   CUSTOM_LIST: True
@@ -72,6 +80,20 @@ trading_options:
   
   SIGNALLING_MODULES:
     - pausebotmod
+    - custsignalmod
     - signalsamplemod
     
-  
+# These options apply to the signalling methods the script executes
+signalling_options:
+
+  # Exchange used by tradingview_ta
+  EXCHANGE: 'BINANCE'
+
+  # Screener used by tradingview_ta
+  SCREENER: 'CRYPTO'
+
+  # Minutes to wait between analysis
+  TIME_TO_WAIT: 1 
+
+  # List analysis result to console
+  FULL_LOG: False 

@@ -1,4 +1,0 @@
-python-binance==0.7.9
-colorama==0.4.4
-PyYAML==5.4.1
-tradingview-ta==3.2.3
