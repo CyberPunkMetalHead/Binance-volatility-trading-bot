@@ -14,13 +14,15 @@ script_options:
 # These options apply to the trading methods the script executes
 trading_options:
  
-  # select what to pair the coins to and pull all coins paied with PAIR_WITH
+  # select your base currency to use for trading (trade for example USDT pairs)
   PAIR_WITH: USDT
 
-  # Total ammount per trade
+  # Total amount per trade (your base currency balance must be at least MAX_COINS * QUANTITY)
+  # Binance uses a minimum of 10 USDT per trade, add a bit extra to enable selling if the price drops.
+  # Recommended: no less than 12 USDT. Suggested: 15 or more.
   QUANTITY: 15
 
-  # List of pairs to exlcude
+  # List of trading pairs to exclude
   # by default we're excluding the most popular fiat pairs
   FIATS:
     - EURUSDT
@@ -30,25 +32,26 @@ trading_options:
     - DOWN
     - UP
 
-  # Maximum number of coints to hold
+  # Maximum number of trade 'slots' at any time (your USDT balance must be at least MAX_COINS * QUANTITY)
   MAX_COINS: 7
 
-  # the amount of time in MINUTES to calculate the difference from the current price
+  # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 2
 
-  # Numer of times to check for TP/SL during each TIME_DIFFERENCE Minimum 1
+  # Number of times to check for TP/SL during each TIME_DIFFERENCE (minimum: 1).
+  # Don't spam the Binance API, you will be banned (max 1200 requests per minute per IP).
   RECHECK_INTERVAL: 10
 
   # the difference in % between the first and second checks for the price.
   CHANGE_IN_PRICE: 10
 
-  # define in % when to sell a coin that's not making a profit
+  # define in % when to sell a coin that's not making a profit.
   STOP_LOSS: 5
 
-  # define in % when to take profit on a profitable coin
+  # define in % when to take profit on a profitable coin.
   TAKE_PROFIT: .8
 
-  # Use custom tickers.txt list for filtering pairs
+  # Use custom tickers.txt list for filtering pairs.
   CUSTOM_LIST: True
    
   # Name of custom tickers list
@@ -63,6 +66,8 @@ trading_options:
   TRAILING_TAKE_PROFIT: .1
   
   # Trading fee in % per trade.
+  # If using 0.75% (using BNB for fees) you must have BNB in your account to cover trading fees.
+  # If using BNB for fees, it MUST be enabled in your Binance 'Dashboard' page (checkbox).
   TRADING_FEE: .075
   
   SIGNALLING_MODULES:
