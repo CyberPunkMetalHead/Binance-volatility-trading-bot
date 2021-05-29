@@ -341,7 +341,7 @@ def buy_coins():
 
             # error handling here in case position cannot be placed
             except Exception as e:
-                print(e)
+                print(f"Error in buy_coins: {e}")
 
             # run the else block if the position has been placed and return order info
             else:
@@ -412,7 +412,7 @@ def sell_coins():
 
             # error handling here in case position cannot be placed
             except Exception as e:
-                print(e)
+                print(f"Error in sell_coins: {e}")
 
             # run the else block if coin has been sold and create a dict for each coin sold
             else:
@@ -592,7 +592,7 @@ if __name__ == "__main__":
         else:
             print(f"No modules to load {SIGNALLING_MODULES}")
     except Exception as e:
-        print(e)
+        print(f"Error in main for signalling modules: {e}")
 
     # seed initial prices
     get_price()
