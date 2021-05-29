@@ -21,7 +21,7 @@ data, _ = config()
 EXCHANGE = data["EXCHANGE"]
 SCREENER = data["SCREENER"]
 PAIR_WITH = data["PAIR_WITH"]
-TICKERS = data["TICKERS"]
+TICKERS = data["TICKERS_LIST"]
 TIME_TO_WAIT = data["TIME_TO_WAIT"]  # Minutes to wait between analysis
 FULL_LOG = data["FULL_LOG"]  # List anylysis result to console
 
@@ -75,7 +75,7 @@ def analyze(pairs):
     return signal_coins
 
 
-def do_work():
+def process():
     signal_coins = {}
     pairs = {}
 

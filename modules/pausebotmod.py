@@ -43,7 +43,7 @@ def analyze():
 
 
 # if __name__ == '__main__':
-def do_work():
+def process():
 
     while True:
         if not threading.main_thread().is_alive():

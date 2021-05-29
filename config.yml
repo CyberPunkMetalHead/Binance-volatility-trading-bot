@@ -23,7 +23,7 @@ trading_options:
   # select your base currency to use for trading (trade for example USDT pairs)
   PAIR_WITH: USDT
 
-  # Total amount per trade (your base currency balance must be at least MAX_COINS * QUANTITY)
+  # Total amount per trade (your base currency balance must be at least TRADE_SLOTS * QUANTITY)
   # Binance uses a minimum of 10 USDT per trade, add a bit extra to enable selling if the price drops.
   # Recommended: no less than 12 USDT. Suggested: 15 or more.
   QUANTITY: 15
@@ -41,8 +41,8 @@ trading_options:
   # Maximum number of orders that can be placed
   MAX_ORDERS: 10
 
-  # Maximum number of trade 'slots' at any time (your USDT balance must be at least MAX_COINS * QUANTITY)
-  MAX_COINS: 20
+  # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * QUANTITY)
+  TRADE_SLOTS: 20
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 2
@@ -61,10 +61,11 @@ trading_options:
   TAKE_PROFIT: .6
 
   # Use custom tickers.txt list for filtering pairs.
-  CUSTOM_LIST: False
+  # CUSTOM_LIST: False
+  CUSTOM_LIST: True
    
   # Name of custom tickers list
-  TICKERS_LIST: 'signalsample.txt'
+  TICKERS_LIST: 'tickers.txt'
    
   # whether to use trailing stop loss or not; default is True
   USE_TRAILING_STOP_LOSS: True
