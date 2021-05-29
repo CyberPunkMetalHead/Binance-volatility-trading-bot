@@ -96,7 +96,9 @@ def is_fiat():
     global hsp_head
     PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
     #list below is in the order that Binance displays them, apologies for not using ASC order
-    if (PAIR_WITH == ( 'USDT' or 'BUSD' or 'AUD' or 'BRL' or 'EUR' or 'GBP' or 'RUB' or 'TRY' or 'TUSD' or 'USDC' or 'PAX' or 'BIDR' or 'DAI' or 'IDRT' or 'UAH' or 'NGN' or 'VAI' or 'BVND')):
+    fiats = ['USDT', 'BUSD', 'AUD', 'BRL', 'EUR', 'GBP', 'RUB', 'TRY', 'TUSD', 'USDC', 'PAX', 'BIDR', 'DAI', 'IDRT', 'UAH', 'NGN', 'VAI', 'BVND']
+
+    if PAIR_WITH in fiats:
         return True
     else:
         return False
@@ -414,16 +416,7 @@ def sell_coins():
                 volatility_cooloff[coin] = datetime.now()
 
                 # Log trade
-                # adding maths as this is really hurting my brain
-                # example here for buying 1x coin at 5 and selling at 10
-                # if buy is 5, fee is 0.00375
-                # if sell is 10, fee is 0.0075
-                # for the above, buyFee + sellFee = 0.07875
                 profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume']) * (1-(buyFee + sellFee))
-                # LastPrice (10) - BuyPrice (5) = 5
-                # 5 * coins_sold (1) = 5
-                # 5 * (1-(0.07875)) = 4.60625
-                # profit = 4.60625, it seems ok!
                 write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.{decimals()}f} {PAIR_WITH} ({PriceChange-(buyFee+sellFee):.2f}%)")
                 session_profit = session_profit + (PriceChange-(buyFee+sellFee))
 

@@ -29,9 +29,9 @@ INTERVAL = Interval.INTERVAL_5_MINUTES #Timeframe for analysis
 EXCHANGE = 'BINANCE'
 SCREENER = 'CRYPTO'
 PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
-TICKERS = parsed_config['trading_options']['TICKERS_LIST']
+TICKERS = parsed_config['trading_options']['SIGNALS_LIST']
 TIME_TO_WAIT = parsed_config['trading_options']['TIME_DIFFERENCE'] # Minutes to wait between analysis
-FULL_LOG = parsed_config['trading_options']['VERBOSE_MODE'] # List anylysis result to console
+FULL_LOG = parsed_config['trading_options']['VERBOSE_MODE'] # List analysis result to console
 
 
 def analyze(pairs):

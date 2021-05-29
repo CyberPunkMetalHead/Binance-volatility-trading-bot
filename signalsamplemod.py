@@ -28,9 +28,9 @@ MY_FIRST_INTERVAL = Interval.INTERVAL_1_MINUTE
 MY_SECOND_INTERVAL = Interval.INTERVAL_5_MINUTES
 TA_BUY_THRESHOLD = 18 # How many of the 26 indicators to indicate a buy
 PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
-TICKERS = parsed_config['trading_options']['TICKERS_LIST']
+TICKERS = parsed_config['trading_options']['SIGNALS_LIST']
 TIME_TO_WAIT = parsed_config['trading_options']['TIME_DIFFERENCE'] # Minutes to wait between analysis
-FULL_LOG = parsed_config['trading_options']['VERBOSE_MODE'] # List anylysis result to console
+FULL_LOG = parsed_config['trading_options']['VERBOSE_MODE'] # List analysis result to console
 
 def analyze(pairs):
     taMax = 0
@@ -77,8 +77,6 @@ def analyze(pairs):
         second_tacheck = second_analysis.summary['BUY']
         if FULL_LOG:
             print(f'Signalsample:{pair} First {first_tacheck} Second {second_tacheck}')
-        #else:
-            #print(".", end = '')
 
         if first_tacheck > taMax:
                 taMax = first_tacheck

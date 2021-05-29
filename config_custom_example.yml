@@ -59,6 +59,11 @@ trading_options:
   # Name of custom tickers list
   TICKERS_LIST: 'tickers_ETH.txt'
 
+  # Use custom signals list for checking TradingView's opinion of the current market state.
+  CUSTOM_SIGNALS: True
+  # Name of custom signals list
+  SIGNALS_LIST: 'signalsample_ETH.txt'
+
   # whether to use trailing stop loss or not; default is True
   USE_TRAILING_STOP_LOSS: True
 
