@@ -26,7 +26,6 @@ creds_file = args.creds if args.creds else DEFAULT_CREDS_FILE
 parsed_creds = load_config(creds_file)
 parsed_config = load_config(config_file)
 
-LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
 LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
 LOG_FILE_PATH = '../' + LOG_FILE
 
@@ -55,8 +54,7 @@ with open('../coins_bought.json', 'r') as f:
         profit = (LastPrice - BuyPrice) * coins[coin]['volume']
         PriceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
 
-        if LOG_TRADES:
-            timestamp = datetime.now().strftime("%d/%m %H:%M:%S")
-            write_log(f"Sell: {coins[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%")
+        timestamp = datetime.now().strftime("%d/%m %H:%M:%S")
+        write_log(f"Sell: {coins[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%")
 
 os.remove('../coins_bought.json')

@@ -320,8 +320,7 @@ def buy():
             }]
 
             # Log trade
-            if LOG_TRADES:
-                write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
+            write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
 
             continue
 
@@ -334,27 +333,27 @@ def buy():
                 quantity = volume[coin]
             )
 
+
         # error handling here in case position cannot be placed
         except Exception as e:
             print(e)
 
         # run the else block if the position has been placed and return order info
         else:
-            orders[coin] = client.get_all_orders(symbol=coin, limit=1)
+            orders[coin] = client.get_all_orders(symbol=coin, limit=99)
 
             # binance sometimes returns an empty list, the code will wait here until binance returns the order
             while orders[coin] == []:
                 print('Binance is being slow in returning the order, calling the API again...')
 
-                orders[coin] = client.get_all_orders(symbol=coin, limit=1)
+                orders[coin] = client.get_all_orders(symbol=coin, limit=99)
                 time.sleep(1)
 
             else:
                 print('Order returned, saving order to file')
 
                 # Log trade
-                if LOG_TRADES:
-                    write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
+                write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
 
     return orders, last_price, volume
 
@@ -395,14 +394,12 @@ def sell_coins():
             print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange-(buyFee+sellFee):.2f}% Est: {(QUANTITY*(PriceChange-(buyFee+sellFee)))/100:.{decimals()}f} {PAIR_WITH}{txcolors.DEFAULT}")
             # try to create a real order
             try:
-
                 if not TEST_MODE:
                     sell_coins_limit = client.create_order(
                         symbol = coin,
                         side = 'SELL',
                         type = 'MARKET',
                         quantity = coins_bought[coin]['volume']
-
                     )
 
             # error handling here in case position cannot be placed
