@@ -73,7 +73,8 @@ def analyze(pairs):
         
         if oscCheck >= OSC_THRESHOLD and maCheck >= MA_THRESHOLD:
                 signal_coins[pair] = pair
-                print(f'Custsignalmod: Signal detected on {pair} at {oscCheck}/{len(OSC_INDICATORS)} oscillators and {maCheck}/{len(MA_INDICATORS)} moving averages.')
+                if FULL_LOG:
+                    print(f'Custsignalmod: Signal detected on {pair} at {oscCheck}/{len(OSC_INDICATORS)} oscillators and {maCheck}/{len(MA_INDICATORS)} moving averages.')
                 with open('signals/custsignalmod.exs','a+') as f:
                     f.write(pair + '\n')
     
