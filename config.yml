@@ -3,7 +3,7 @@ script_options:
   # Setting TEST_MODE to False will use REAL funds, use at your own risk!
   TEST_MODE: True
   # Save trades to a log file.
-  LOG_TRADES: True
+#  LOG_TRADES: True
   # Specify the location of log file (default: trades.txt).
   LOG_FILE: 'trades.txt'
 
@@ -14,7 +14,7 @@ script_options:
 
 # These options apply to the trading methods the script executes
 trading_options:
- 
+
   # select your base currency to use for trading pairs (for example USDT, ETH, BTC)
   PAIR_WITH: ETH
 
@@ -35,30 +35,30 @@ trading_options:
     - UP
 
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * QUANTITY)
-  TRADE_SLOTS: 7
+  TRADE_SLOTS: 999
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
-  TIME_DIFFERENCE: 2
+  TIME_DIFFERENCE: 3
 
   # Number of times to check for TP/SL during each TIME_DIFFERENCE (minimum: 1).
   # Don't spam the Binance API, you will be banned (max 1200 requests per minute per IP).
-  RECHECK_INTERVAL: 10
+  RECHECK_INTERVAL: 36
 
   # the difference in % between the first and second checks for the price.
-  CHANGE_IN_PRICE: 3
+  CHANGE_IN_PRICE: 2
 
   # define in % when to sell a coin that's not making a profit.
-  STOP_LOSS: 3
+  STOP_LOSS: 99
 
   # define in % when to take profit on a profitable coin.
-  TAKE_PROFIT: .8
+  TAKE_PROFIT: .7
 
   # Use custom tickers.txt list for filtering pairs.
   CUSTOM_LIST: True
-   
+
   # Name of custom tickers list
   TICKERS_LIST: 'tickers_ETH.txt'
-   
+
   # whether to use trailing stop loss or not; default is True
   USE_TRAILING_STOP_LOSS: True
 
@@ -66,7 +66,7 @@ trading_options:
   # when hit TAKE_PROFIT, move TAKE_PROFIT up by TRAILING_TAKE_PROFIT percentage points
   TRAILING_STOP_LOSS: .4
   TRAILING_TAKE_PROFIT: .1
-  
+
   # Trading fee in % per trade.
   # If using 0.75% (using BNB for fees) you must have BNB in your account to cover trading fees.
   # If using BNB for fees, it MUST be enabled in your Binance 'Dashboard' page (checkbox).
@@ -74,9 +74,10 @@ trading_options:
 
   # show/hide additional data on bot screen. False = silent, True = spam (debug mode).
   VERBOSE_MODE: False
-  
+
   SIGNALLING_MODULES:
-#    - pausebotmod
-    - signalsamplemod
-    
+    #    - pausebotmod
+    #    - signalsamplemod
+    - custsignalmod
+
   
