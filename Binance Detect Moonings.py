@@ -159,7 +159,6 @@ def wait_for_price():
         # sleep for exactly the amount of time required
         time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds())
 
-    print(f'Using {len(coins_bought)}/{TRADE_SLOTS} trade slots. Session profit: {session_profit:.2f}% - Est: {(QUANTITY * session_profit)/100:.{decimals()}f} {PAIR_WITH}')
     # retrieve latest prices
     get_price()
 
@@ -228,6 +227,21 @@ def external_signals():
             if DEBUG: print(f"{txcolors.WARNING}Could not remove external signalling file{txcolors.DEFAULT}")
 
     return external_list
+
+def balance_report():
+    INVESTMENT_TOTAL = (QUANTITY * TRADE_SLOTS)
+    CURRENT_EXPOSURE = (QUANTITY * len(coins_bought))
+    TOTAL_GAINS = ((QUANTITY * session_profit) / 100)
+    NEW_BALANCE = (INVESTMENT_TOTAL + TOTAL_GAINS)
+    INVESTMENT_GAIN = (TOTAL_GAINS / INVESTMENT_TOTAL) * 100
+
+    print(f' ')
+    print(f'Using {len(coins_bought)}/{TRADE_SLOTS} trade slots. Session profit: {session_profit:.2f}% - Est: {TOTAL_GAINS:.{decimals()}f} {PAIR_WITH}')
+    print(f'Investment: {INVESTMENT_TOTAL:.{decimals()}f} {PAIR_WITH}, Exposure: {CURRENT_EXPOSURE:.{decimals()}f} {PAIR_WITH}, New balance: {NEW_BALANCE:.{decimals()}f} {PAIR_WITH}, Gains: {INVESTMENT_GAIN:.2f}%')
+    print(f'---------------------------------------------------------------------------------------------')
+    print(f' ')
+
+    return
 
 
 def pause_bot():
@@ -357,6 +371,7 @@ def buy():
                 # Log trade
                 write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
 
+
     return orders, last_price, volume
 
 
@@ -419,6 +434,8 @@ def sell_coins():
                 profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume']) * (1-(buyFee + sellFee))
                 write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.{decimals()}f} {PAIR_WITH} ({PriceChange-(buyFee+sellFee):.2f}%)")
                 session_profit = session_profit + (PriceChange-(buyFee+sellFee))
+                # print balance report
+                balance_report()
 
             continue
 
@@ -452,6 +469,8 @@ def update_portfolio(orders, last_price, volume):
             json.dump(coins_bought, file, indent=4)
 
         print(f'Order with id {orders[coin][0]["orderId"]} placed and saved to file')
+        # print balance report
+        balance_report()
 
 
 def remove_from_portfolio(coins_sold):

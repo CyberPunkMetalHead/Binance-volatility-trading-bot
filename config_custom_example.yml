@@ -35,17 +35,17 @@ trading_options:
     - UP
 
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * QUANTITY)
-  TRADE_SLOTS: 999
+  TRADE_SLOTS: 70
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
-  TIME_DIFFERENCE: 3
+  TIME_DIFFERENCE: 5
 
   # Number of times to check for TP/SL during each TIME_DIFFERENCE (minimum: 1).
   # Don't spam the Binance API, you will be banned (max 1200 requests per minute per IP).
-  RECHECK_INTERVAL: 36
+  RECHECK_INTERVAL: 60
 
   # the difference in % between the first and second checks for the price.
-  CHANGE_IN_PRICE: 2
+  CHANGE_IN_PRICE: 2.5
 
   # define in % when to sell a coin that's not making a profit.
   STOP_LOSS: 99
