@@ -13,18 +13,23 @@ import glob
 import time
 import threading
 
+# load get config module
+from helpers.get_config import config
+
+data, _ = config()
+
+EXCHANGE = data["EXCHANGE"]
+SCREENER = data["SCREENER"]
+PAIR_WITH = data["PAIR_WITH"]
+TICKERS = data["TICKERS"]
+TIME_TO_WAIT = data["TIME_TO_WAIT"]  # Minutes to wait between analysis
+FULL_LOG = data["FULL_LOG"]  # List anylysis result to console
+
 OSC_INDICATORS = ["MACD", "Stoch.RSI", "Mom"]  # Indicators to use in Oscillator analysis
 OSC_THRESHOLD = 2  # Must be less or equal to number of items in OSC_INDICATORS
 MA_INDICATORS = ["EMA10", "EMA20"]  # Indicators to use in Moving averages analysis
 MA_THRESHOLD = 2  # Must be less or equal to number of items in MA_INDICATORS
 INTERVAL = Interval.INTERVAL_5_MINUTES  # Timeframe for analysis
-
-EXCHANGE = "BINANCE"
-SCREENER = "CRYPTO"
-PAIR_WITH = "USDT"
-TICKERS = "tickers.txt"
-TIME_TO_WAIT = 1  # Minutes to wait between analysis
-FULL_LOG = False  # List analysis result to console
 
 
 def analyze(pairs):

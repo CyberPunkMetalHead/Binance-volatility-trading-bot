@@ -297,7 +297,7 @@ def buy_coins():
     for coin in volume:
 
         # only buy if the there are no active trades on the coin
-        print("max_orders", max_orders)
+        # print("max_orders", max_orders)
         if max_orders <= 0:
             print(f"max_orders reached, no more trade!!! Wait finish trade queue.")
 
@@ -489,10 +489,15 @@ if __name__ == "__main__":
     TRADING_FEE = data["TRADING_FEE"]
     SIGNALLING_MODULES = data["SIGNALLING_MODULES"]
 
+    # perform certain checks
+    if data["DEBUG"]:
+        print(f"loaded config below\n{json.dumps(data['parsed_config'], indent=4)}")
+        print(f"Your credentials have been loaded from {data['creds_file']}")
+
     # Initialise max_orders
     max_orders = MAX_ORDERS
 
-    client = auth()
+    client = auth(data, key)
 
     # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
     if CUSTOM_LIST:

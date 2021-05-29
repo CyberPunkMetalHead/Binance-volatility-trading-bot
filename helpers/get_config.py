@@ -53,11 +53,12 @@ def config():
     data["TIME_TO_WAIT"] = parsed_config["signalling_options"]["TIME_TO_WAIT"]
     data["FULL_LOG"] = parsed_config["signalling_options"]["FULL_LOG"]
 
+    data["parsed_config"] = parsed_config
+    data["parsed_creds"] = parsed_creds
+
     # perform certain checks
     if data["DEBUG"] or args.debug:
         data["DEBUG"] = True
-        print(f"loaded config below\n{json.dumps(parsed_config, indent=4)}")
-        print(f"Your credentials have been loaded from {data['creds_file']}")
 
     if args.notimeout:
         data["NOTIMEOUT"] = True

@@ -7,6 +7,7 @@ script_options:
   LOG_FILE: 'trades.txt'
 
   # Used to print debugging statements in the script
+  # DEBUG: False
   DEBUG: True
 
   # Set this to true if you are accessing binance from within the United States of America
@@ -51,19 +52,19 @@ trading_options:
   RECHECK_INTERVAL: 10
 
   # the difference in % between the first and second checks for the price.
-  CHANGE_IN_PRICE: 1.5
+  CHANGE_IN_PRICE: 1.8
 
   # define in % when to sell a coin that's not making a profit.
-  STOP_LOSS: 2.9
+  STOP_LOSS: .6
 
   # define in % when to take profit on a profitable coin.
   TAKE_PROFIT: .6
 
   # Use custom tickers.txt list for filtering pairs.
-  CUSTOM_LIST: True
+  CUSTOM_LIST: False
    
   # Name of custom tickers list
-  TICKERS_LIST: 'tickers.txt'
+  TICKERS_LIST: 'signalsample.txt'
    
   # whether to use trailing stop loss or not; default is True
   USE_TRAILING_STOP_LOSS: True
@@ -96,4 +97,4 @@ signalling_options:
   TIME_TO_WAIT: 1 
 
   # List analysis result to console
-  FULL_LOG: False 
+  FULL_LOG: True 

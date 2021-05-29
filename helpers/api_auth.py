@@ -7,9 +7,8 @@ from helpers.handle_creds import test_api_key
 from helpers.colors import txcolors
 
 
-def auth():
+def auth(data, key):
     # Authenticate with the client, Ensure API key is good before continuing
-    data, key = config()
 
     AMERICAN_USER = data["AMERICAN_USER"]
     TESTNET = data["TESTNET"]
