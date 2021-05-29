@@ -31,7 +31,7 @@ SCREENER = 'CRYPTO'
 PAIR_WITH = parsed_config['trading_options']['PAIR_WITH']
 TICKERS = parsed_config['trading_options']['TICKERS_LIST']
 TIME_TO_WAIT = parsed_config['trading_options']['TIME_DIFFERENCE'] # Minutes to wait between analysis
-FULL_LOG = parsed_config['trading_options']['VERBOSE_MODE'] # List analysis result to console
+FULL_LOG = parsed_config['trading_options']['VERBOSE_MODE'] # List anylysis result to console
 
 
 def analyze(pairs):
@@ -87,9 +87,10 @@ def do_work():
     for line in open(TICKERS):
         pairs=[line.strip() + PAIR_WITH for line in open(TICKERS)] 
     
-    if FULL_LOG:
+    while True:
         if not threading.main_thread().is_alive(): exit()
         print(f'Custsignalmod: Analyzing {len(pairs)} coins')
         signal_coins = analyze(pairs)
-        print(f'Custsignalmod: {len(signal_coins)} coins above {OSC_THRESHOLD}/{len(OSC_INDICATORS)} oscillators and {MA_THRESHOLD}/{len(MA_INDICATORS)} moving averages Waiting {TIME_TO_WAIT} minutes for next analysis.')
+        if FULL_LOG:
+            print(f'Custsignalmod: {len(signal_coins)} coins above {OSC_THRESHOLD}/{len(OSC_INDICATORS)} oscillators and {MA_THRESHOLD}/{len(MA_INDICATORS)} moving averages Waiting {TIME_TO_WAIT} minutes for next analysis.')
         time.sleep((TIME_TO_WAIT*60))

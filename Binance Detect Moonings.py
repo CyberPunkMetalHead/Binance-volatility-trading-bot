@@ -425,10 +425,8 @@ def sell_coins():
                 # 5 * (1-(0.07875)) = 4.60625
                 # profit = 4.60625, it seems ok!
                 write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.{decimals()}f} {PAIR_WITH} ({PriceChange-(buyFee+sellFee):.2f}%)")
-                if profit > 0:
-                    session_profit = (session_profit + profit)
-                else:
-                    session_profit - (session_profit - profit)
+                session_profit = session_profit + (PriceChange-(buyFee+sellFee))
+
             continue
 
         # no action; print once every TIME_DIFFERENCE
