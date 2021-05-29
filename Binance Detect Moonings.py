@@ -157,7 +157,7 @@ def wait_for_price():
         # sleep for exactly the amount of time required
         time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds())
 
-    print(f'Working...Session profit:{session_profit:.2f}% - Est: {(QUANTITY * session_profit)/100:.{decimals()}f} {PAIR_WITH}')
+    print(f'Using {len(coins_bought)}/{TRADE_SLOTS} trade slots. Session profit: {session_profit:.2f}% - Est: {(QUANTITY * session_profit)/100:.{decimals()}f} {PAIR_WITH}')
     # retrieve latest prices
     get_price()
 
@@ -310,57 +310,51 @@ def buy():
 
     for coin in volume:
 
-        # only buy if the there are no active trades on the coin
-        if coin not in coins_bought:
-            print(f"{txcolors.BUY}Preparing to buy {volume[coin]} {coin}{txcolors.DEFAULT}")
+        print(f"{txcolors.BUY}Preparing to buy {volume[coin]} {coin}{txcolors.DEFAULT}")
 
-            if TEST_MODE:
-                orders[coin] = [{
-                    'symbol': coin,
-                    'orderId': 0,
-                    'time': datetime.now().timestamp()
-                }]
+        if TEST_MODE:
+            orders[coin] = [{
+                'symbol': coin,
+                'orderId': 0,
+                'time': datetime.now().timestamp()
+            }]
+
+            # Log trade
+            if LOG_TRADES:
+                write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
+
+            continue
+
+        # try to create a real order if the test orders did not raise an exception
+        try:
+            buy_limit = client.create_order(
+                symbol = coin,
+                side = 'BUY',
+                type = 'MARKET',
+                quantity = volume[coin]
+            )
+
+        # error handling here in case position cannot be placed
+        except Exception as e:
+            print(e)
+
+        # run the else block if the position has been placed and return order info
+        else:
+            orders[coin] = client.get_all_orders(symbol=coin, limit=1)
+
+            # binance sometimes returns an empty list, the code will wait here until binance returns the order
+            while orders[coin] == []:
+                print('Binance is being slow in returning the order, calling the API again...')
+
+                orders[coin] = client.get_all_orders(symbol=coin, limit=1)
+                time.sleep(1)
+
+            else:
+                print('Order returned, saving order to file')
 
                 # Log trade
                 if LOG_TRADES:
                     write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
-
-                continue
-
-            # try to create a real order if the test orders did not raise an exception
-            try:
-                buy_limit = client.create_order(
-                    symbol = coin,
-                    side = 'BUY',
-                    type = 'MARKET',
-                    quantity = volume[coin]
-                )
-
-            # error handling here in case position cannot be placed
-            except Exception as e:
-                print(e)
-
-            # run the else block if the position has been placed and return order info
-            else:
-                orders[coin] = client.get_all_orders(symbol=coin, limit=1)
-
-                # binance sometimes returns an empty list, the code will wait here until binance returns the order
-                while orders[coin] == []:
-                    print('Binance is being slow in returning the order, calling the API again...')
-
-                    orders[coin] = client.get_all_orders(symbol=coin, limit=1)
-                    time.sleep(1)
-
-                else:
-                    print('Order returned, saving order to file')
-
-                    # Log trade
-                    if LOG_TRADES:
-                        write_log(f"Buy : {volume[coin]} {coin} - {last_price[coin]['price']}")
-
-
-        else:
-            print(f'Signal detected, but there is already an active trade on {coin}')
 
     return orders, last_price, volume
 
@@ -432,7 +426,7 @@ def sell_coins():
                 print(f"TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange-(TRADING_FEE*2):.2f}% Est: {(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.{decimals()}f} {PAIR_WITH}{txcolors.DEFAULT}")
 
     if hsp_head == 1 and len(coins_bought) == 0: print(f"No trade slots are currently in use")
- 
+
     return coins_sold
 
 
@@ -569,7 +563,8 @@ if __name__ == '__main__':
 
     if not TEST_MODE:
         if not args.notimeout: # if notimeout skip this (fast for dev tests)
-            print('WARNING: test mode is disabled in the configuration, you are using live funds. Waiting 30 seconds before action as a security measure')
+            print('WARNING: test mode is disabled in the configuration, you are using live funds.')
+            print('WARNING: Waiting 30 seconds before live trading as a security measure!')
             time.sleep(30)
 
     signals = glob.glob("signals/*.exs")
