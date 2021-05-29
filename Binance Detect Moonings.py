@@ -375,7 +375,10 @@ def sell_coins():
 
 
         LastPrice = float(last_price[coin]['price'])
+        # sell fee below would ofc only apply if transaction was closed at the current LastPrice
+        sellFee = (LastPrice * (TRADING_FEE/100))
         BuyPrice = float(coins_bought[coin]['bought_at'])
+        buyFee = (BuyPrice * (TRADING_FEE/100))
         PriceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
 
         # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
@@ -389,7 +392,7 @@ def sell_coins():
 
         # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
         if LastPrice < SL or LastPrice > TP and not USE_TRAILING_STOP_LOSS:
-            print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange-(TRADING_FEE*2):.2f}% Est: {(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.{decimals()}f} {PAIR_WITH}{txcolors.DEFAULT}")
+            print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange-(buyFee+sellFee):.2f}% Est: {(QUANTITY*(PriceChange-(buyFee+sellFee)))/100:.{decimals()}f} {PAIR_WITH}{txcolors.DEFAULT}")
             # try to create a real order
             try:
 
@@ -414,16 +417,24 @@ def sell_coins():
                 volatility_cooloff[coin] = datetime.now()
 
                 # Log trade
-                if LOG_TRADES:
-                    profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume'])* (1-(TRADING_FEE*2)) # adjust for trading fee here
-                    write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.{decimals()}f} {PAIR_WITH} ({PriceChange-(TRADING_FEE*2):.2f}%)")
-                    session_profit=session_profit + (PriceChange-(TRADING_FEE*2))
+                # adding maths as this is really hurting my brain
+                # example here for buying 1x coin at 5 and selling at 10
+                # if buy is 5, fee is 0.00375
+                # if sell is 10, fee is 0.0075
+                # for the above, buyFee + sellFee = 0.07875
+                profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume']) * (1-(buyFee + sellFee))
+                # LastPrice (10) - BuyPrice (5) = 5
+                # 5 * coins_sold (1) = 5
+                # 5 * (1-(0.07875)) = 4.60625
+                # profit = 4.60625, it seems ok!
+                write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.{decimals()}f} {PAIR_WITH} ({PriceChange-(buyFee+sellFee):.2f}%)")
+                session_profit = session_profit + profit
             continue
 
         # no action; print once every TIME_DIFFERENCE
         if hsp_head == 1:
             if len(coins_bought) > 0:
-                print(f"TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange-(TRADING_FEE*2):.2f}% Est: {(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.{decimals()}f} {PAIR_WITH}{txcolors.DEFAULT}")
+                print(f"TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange-(buyFee+sellFee):.2f}% Est: {(QUANTITY*(PriceChange-(buyFee+sellFee)))/100:.{decimals()}f} {PAIR_WITH}{txcolors.DEFAULT}")
 
     if hsp_head == 1 and len(coins_bought) == 0: print(f"No trade slots are currently in use")
 
@@ -489,7 +500,7 @@ if __name__ == '__main__':
 
     # Load system vars
     TEST_MODE = parsed_config['script_options']['TEST_MODE']
-    LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
+#     LOG_TRADES = parsed_config['script_options'].get('LOG_TRADES')
     LOG_FILE = parsed_config['script_options'].get('LOG_FILE')
     DEBUG_SETTING = parsed_config['script_options'].get('DEBUG')
     AMERICAN_USER = parsed_config['script_options'].get('AMERICAN_USER')
@@ -518,7 +529,7 @@ if __name__ == '__main__':
     access_key, secret_key = load_correct_creds(parsed_creds)
 
     if DEBUG:
-        print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
+        print(f'Loaded config below\n{json.dumps(parsed_config, indent=4)}')
         print(f'Your credentials have been loaded from {creds_file}')
 
 
