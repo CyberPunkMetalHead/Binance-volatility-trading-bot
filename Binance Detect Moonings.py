@@ -235,11 +235,7 @@ def balance_report():
     NEW_BALANCE = (INVESTMENT_TOTAL + TOTAL_GAINS)
     INVESTMENT_GAIN = (TOTAL_GAINS / INVESTMENT_TOTAL) * 100
 
-    print(f' ')
-    print(f'Using {len(coins_bought)}/{TRADE_SLOTS} trade slots. Session profit: {session_profit:.2f}% - Est: {TOTAL_GAINS:.{decimals()}f} {PAIR_WITH}')
-    print(f'Investment: {INVESTMENT_TOTAL:.{decimals()}f} {PAIR_WITH}, Exposure: {CURRENT_EXPOSURE:.{decimals()}f} {PAIR_WITH}, New balance: {NEW_BALANCE:.{decimals()}f} {PAIR_WITH}, Gains: {INVESTMENT_GAIN:.2f}%')
-    print(f'---------------------------------------------------------------------------------------------')
-    print(f' ')
+    print(f'Trade slots: {len(coins_bought)}/{TRADE_SLOTS} ({CURRENT_EXPOSURE:.{decimals()}f}/{INVESTMENT_TOTAL:.{decimals()}f}{PAIR_WITH}) - Profit: {session_profit:.2f}% ({INVESTMENT_GAIN:.2f}% - {TOTAL_GAINS:.{decimals()}f}{PAIR_WITH})')
 
     return
 
@@ -624,3 +620,7 @@ if __name__ == '__main__':
         update_portfolio(orders, last_price, volume)
         coins_sold = sell_coins()
         remove_from_portfolio(coins_sold)
+
+    # print balance report
+    balance_report()
+    time.sleep(30)
