@@ -246,7 +246,7 @@ def balance_report():
 
     # truncating some of the above values to the correct decimal places before printing
     INVESTMENT_TOTAL  = round(INVESTMENT_TOTAL,decimals() )
-    INVESTMENT_GAIN = round(INVESTMENT_GAIN,decimals() )
+    CURRENT_EXPOSURE= round(CURRENT_EXPOSURE,decimals() )
     TOTAL_GAINS = round(TOTAL_GAINS,decimals() )
 
 
