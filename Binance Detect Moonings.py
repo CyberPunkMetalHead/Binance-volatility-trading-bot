@@ -620,7 +620,3 @@ if __name__ == '__main__':
         update_portfolio(orders, last_price, volume)
         coins_sold = sell_coins()
         remove_from_portfolio(coins_sold)
-
-    # print balance report
-    balance_report()
-    time.sleep(30)
