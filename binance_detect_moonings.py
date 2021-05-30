@@ -88,9 +88,9 @@ def is_fiat(PAIR_WITH):
     # check if we are using a fiat as a base currency
     global hsp_head
     # list below is in the order that Binance displays them, apologies for not using ASC order
-    if PAIR_WITH == (
-        "USDT" or "BUSD" or "AUD" or "BRL" or "EUR" or "GBP" or "RUB" or "TRY" or "TUSD" or "USDC" or "PAX" or "BIDR" or "DAI" or "IDRT" or "UAH" or "NGN" or "VAI" or "BVND"
-    ):
+    fiats = ["USDT", "BUSD", "AUD", "BRL", "EUR", "GBP", "RUB", "TRY", "TUSD", "USDC", "PAX", "BIDR", "DAI", "IDRT", "UAH", "NGN", "VAI", "BVND"]
+
+    if PAIR_WITH in fiats:
         return True
     else:
         return False
@@ -152,8 +152,9 @@ def wait_for_price():
         # sleep for exactly the amount of time required
         time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (datetime.now() - historical_prices[hsp_head]["BNB" + PAIR_WITH]["time"])).total_seconds())
 
-    print(f"Working...Session profit:{session_profit:.2f}% - Est: {(QUANTITY * session_profit)/100:.{decimals(PAIR_WITH)}f} {PAIR_WITH}")
-    # retrieve latest prices
+    print(
+        f"Using {len(coins_bought)}/{TRADE_SLOTS} trade slots. Session profit: {session_profit:.2f}% - Est: {(QUANTITY * session_profit)/100:.{decimals()}f} {PAIR_WITH}"
+    )  # retrieve latest prices
 
     get_price()
 
@@ -230,6 +231,24 @@ def external_signals():
                 print(f"{txcolors.WARNING}Could not remove external signalling file{txcolors.DEFAULT}")
 
     return external_list
+
+
+def balance_report():
+    INVESTMENT_TOTAL = QUANTITY * TRADE_SLOTS
+    CURRENT_EXPOSURE = QUANTITY * len(coins_bought)
+    TOTAL_GAINS = (QUANTITY * session_profit) / 100
+    NEW_BALANCE = INVESTMENT_TOTAL + TOTAL_GAINS
+    INVESTMENT_GAIN = (TOTAL_GAINS / INVESTMENT_TOTAL) * 100
+
+    print(f" ")
+    print(f"Using {len(coins_bought)}/{TRADE_SLOTS} trade slots. Session profit: {session_profit:.2f}% - Est: {TOTAL_GAINS:.{decimals()}f} {PAIR_WITH}")
+    print(
+        f"Investment: {INVESTMENT_TOTAL:.{decimals()}f} {PAIR_WITH}, Exposure: {CURRENT_EXPOSURE:.{decimals()}f} {PAIR_WITH}, New balance: {NEW_BALANCE:.{decimals()}f} {PAIR_WITH}, Gains: {INVESTMENT_GAIN:.2f}%"
+    )
+    print(f"---------------------------------------------------------------------------------------------")
+    print(f" ")
+
+    return
 
 
 def pause_bot():
@@ -385,6 +404,10 @@ def sell_coins():
         BuyPrice = float(coins_bought[coin]["bought_at"])
         PriceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
 
+        # sell fee below would ofc only apply if transaction was closed at the current LastPrice
+        SellFee = LastPrice * (TRADING_FEE / 100)
+        BuyFee = BuyPrice * (TRADING_FEE / 100)
+
         # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
         if LastPrice > TP and USE_TRAILING_STOP_LOSS:
 
@@ -401,9 +424,8 @@ def sell_coins():
         # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
         if LastPrice < SL or LastPrice > TP and not USE_TRAILING_STOP_LOSS:
             print(
-                f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange-(TRADING_FEE*2):.2f}% Est: {(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.{decimals(PAIR_WITH)}f} {PAIR_WITH}{txcolors.DEFAULT}"
+                f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange-(BuyFee+SellFee):.2f}% Est: {(QUANTITY*(PriceChange-(BuyFee+SellFee)))/100:.{decimals()}f} {PAIR_WITH}{txcolors.DEFAULT}"
             )
-
             # try to create a real order
             try:
 
@@ -423,18 +445,36 @@ def sell_coins():
 
                 # Log trade
                 if LOG_TRADES:
-                    profit = ((LastPrice - BuyPrice) * coins_sold[coin]["volume"]) * (1 - (TRADING_FEE * 2))  # adjust for trading fee here
+                    # Original
+                    # profit = ((LastPrice - BuyPrice) * coins_sold[coin]["volume"]) * (1 - (TRADING_FEE * 2))  # adjust for trading fee here
+                    # write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.{decimals(PAIR_WITH)}f} {PAIR_WITH} ({PriceChange-(TRADING_FEE*2):.2f}%)")
+                    # session_profit = session_profit + (PriceChange - (TRADING_FEE * 2))
+
+                    # BY FreshLondon
+                    # adding maths as this is really hurting my brain
+                    # example here for buying 1x coin at 5 and selling at 10
+                    # if buy is 5, fee is 0.00375
+                    # if sell is 10, fee is 0.0075
+                    # for the above, BuyFee + SellFee = 0.07875
+                    profit = ((LastPrice - BuyPrice) * coins_sold[coin]["volume"]) * (1 - (BuyFee + SellFee))
+                    # LastPrice (10) - BuyPrice (5) = 5
+                    # 5 * coins_sold (1) = 5
+                    # 5 * (1-(0.07875)) = 4.60625
+                    # profit = 4.60625, it seems ok!
                     write_log(
-                        f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.{decimals(PAIR_WITH)}f} {PAIR_WITH} ({PriceChange-(TRADING_FEE*2):.2f}%)"
+                        f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.{decimals()}f} {PAIR_WITH} ({PriceChange-(BuyFee+SellFee):.2f}%)"
                     )
-                    session_profit = session_profit + (PriceChange - (TRADING_FEE * 2))
+                    session_profit = session_profit + (PriceChange - (BuyFee + SellFee))
+
+                    # print balance report
+                    balance_report()
             continue
 
         # no action; print once every TIME_DIFFERENCE
         if hsp_head == 1:
             if len(coins_bought) > 0:
                 print(
-                    f"TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange-(TRADING_FEE*2):.2f}% Est:${(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.2f}{txcolors.DEFAULT}"
+                    f"TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange-(BuyFee+SellFee):.2f}% Est: {(QUANTITY*(PriceChange-(BuyFee+SellFee)))/100:.{decimals()}f} {PAIR_WITH}{txcolors.DEFAULT}"
                 )
 
     if hsp_head == 1 and len(coins_bought) == 0:
@@ -464,6 +504,8 @@ def update_portfolio(orders, last_price, volume):
             json.dump(coins_bought, file, indent=4)
 
         print(f'Order with id {orders[coin][0]["orderId"]} placed and saved to file')
+        # print balance report
+        balance_report()
 
 
 def remove_from_portfolio(coins_sold):

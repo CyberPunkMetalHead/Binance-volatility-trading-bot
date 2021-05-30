@@ -1,8 +1,9 @@
 creds.yml
 trades.txt
 
-# Dont upload signals
+# Dont upload exc
 signals/paused.exc
+signals/custsignalmod.exs
 
 __*__
 
