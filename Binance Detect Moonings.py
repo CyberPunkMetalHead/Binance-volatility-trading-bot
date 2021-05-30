@@ -69,6 +69,11 @@ class txcolors:
 global session_profit
 session_profit = 0
 
+global profit_history
+try:
+    profit_history
+except NameError:
+    profit_history = 0      # or some other default value.
 
 # print with timestamps
 old_out = sys.stdout
@@ -231,13 +236,21 @@ def external_signals():
     return external_list
 
 def balance_report():
+    global profit_history
     INVESTMENT_TOTAL = (QUANTITY * TRADE_SLOTS)
     CURRENT_EXPOSURE = (QUANTITY * len(coins_bought))
     TOTAL_GAINS = ((QUANTITY * session_profit) / 100)
     NEW_BALANCE = (INVESTMENT_TOTAL + TOTAL_GAINS)
     INVESTMENT_GAIN = (TOTAL_GAINS / INVESTMENT_TOTAL) * 100
+    PROFIT_HISTORY = profit_history
 
-    print(f'Trade slots: {len(coins_bought)}/{TRADE_SLOTS} ({CURRENT_EXPOSURE:.{decimals()}f}/{INVESTMENT_TOTAL:.{decimals()}f}{PAIR_WITH}) - Profit: {session_profit:.2f}% ({INVESTMENT_GAIN:.2f}% - {TOTAL_GAINS:.{decimals()}f}{PAIR_WITH})')
+    # truncating some of the above values to the correct decimal places before printing
+    INVESTMENT_TOTAL  = round(INVESTMENT_TOTAL,decimals() )
+    INVESTMENT_GAIN = round(INVESTMENT_GAIN,decimals() )
+    TOTAL_GAINS = round(TOTAL_GAINS,decimals() )
+
+
+    print(f'Trade slots: {len(coins_bought)}/{TRADE_SLOTS} ({float(CURRENT_EXPOSURE):g}/{float(INVESTMENT_TOTAL):g}{PAIR_WITH}) - Session trades: {session_profit:.2f}% (all time: {PROFIT_HISTORY:.2f}%) - Actual profit: {INVESTMENT_GAIN:.2f}% ({float(TOTAL_GAINS):g}{PAIR_WITH}) ')
 
     return
 
@@ -376,7 +389,7 @@ def buy():
 def sell_coins():
     '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
 
-    global hsp_head, session_profit
+    global hsp_head, session_profit, profit_history
 
     last_price = get_price(False) # don't populate rolling window
     #last_price = get_price(add_to_historical=True) # don't populate rolling window
@@ -432,6 +445,7 @@ def sell_coins():
                 profit = ((LastPrice - BuyPrice) * coins_sold[coin]['volume']) * (1-(buyFee + sellFee))
                 write_log(f"Sell: {coins_sold[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.{decimals()}f} {PAIR_WITH} ({PriceChange-(buyFee+sellFee):.2f}%)")
                 session_profit = session_profit + (PriceChange-(buyFee+sellFee))
+                profit_history = profit_history + (PriceChange-(buyFee+sellFee))
                 # print balance report
                 balance_report()
 
@@ -449,6 +463,8 @@ def sell_coins():
 
 def update_portfolio(orders, last_price, volume):
     '''add every coin bought to our portfolio for tracking/selling later'''
+    global profit_history
+
     if DEBUG: print(orders)
     for coin in orders:
 
@@ -465,6 +481,10 @@ def update_portfolio(orders, last_price, volume):
         # save the coins in a json file in the same directory
         with open(coins_bought_file_path, 'w') as file:
             json.dump(coins_bought, file, indent=4)
+            
+        #save session info for through session portability
+        with open(profit_history_file_path, 'w') as file:
+            json.dump(profit_history, file, indent=4)
 
         print(f'Order with id {orders[coin][0]["orderId"]} placed and saved to file')
         # print balance report
@@ -561,6 +581,15 @@ if __name__ == '__main__':
 
     # path to the saved coins_bought file
     coins_bought_file_path = 'coins_bought.json'
+    
+    # The below mod was stolen and altered from GoGo's fork, a nice addition for keeping a historical history of profit across multiple bot sessions.
+    # profit_history is calculated in %, apparently: "this is inaccurate if QUANTITY is not the same!"
+    profit_history_file_path = 'profit_history.json'
+    
+    if os.path.isfile(profit_history_file_path) and os.stat(profit_history_file_path).st_size!= 0:
+       json_file=open(profit_history_file_path)
+       profit_history=json.load(json_file)
+       json_file.close()
 
     # rolling window of prices; cyclical queue
     historical_prices = [None] * (TIME_DIFFERENCE * RECHECK_INTERVAL)
