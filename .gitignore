@@ -1,6 +1,9 @@
 creds.yml
 trades.txt
 
+# Dont upload signals
+signals/paused.exc
+
 __*__
 
 # Dont upload json files

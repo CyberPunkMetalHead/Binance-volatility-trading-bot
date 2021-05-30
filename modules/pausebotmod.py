@@ -3,6 +3,8 @@ import os
 import time
 import threading
 
+# Load colors
+from helpers.colors import txcolors
 
 # load get config module
 from helpers.get_config import config
@@ -34,7 +36,7 @@ def analyze():
     ma_sell = analysis.moving_averages["SELL"]
     if ma_sell >= THRESHOLD:
         paused = True
-        print(f"pausebotmod: Market not looking too good, bot paused from buying {ma_sell}/{THRESHOLD} Waiting {TIME_TO_WAIT} minutes for next market checkup")
+        print(f"{txcolors.WARNING}pausebotmod: Market not looking too good, bot paused from buying {ma_sell}/{THRESHOLD} Waiting {TIME_TO_WAIT} minutes for next market checkup{txcolors.DEFAULT}")
     else:
         print(f"pausebotmod: Market looks ok, bot is running {ma_sell}/{THRESHOLD} Waiting {TIME_TO_WAIT} minutes for next market checkup ")
         paused = False

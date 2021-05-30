@@ -1,4 +1,4 @@
-from tradingview_ta import Interval, get_multiple_analysis
+#from tradingview_ta import Interval, get_multiple_analysis
 
 
 def get_new_tickers(client, PAIR_WITH, FIATS):
