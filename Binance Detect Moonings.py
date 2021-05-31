@@ -249,8 +249,7 @@ def balance_report():
     CURRENT_EXPOSURE= round(CURRENT_EXPOSURE,decimals() )
     TOTAL_GAINS = round(TOTAL_GAINS,decimals() )
 
-
-    print(f'Trade slots: {len(coins_bought)}/{TRADE_SLOTS} ({float(CURRENT_EXPOSURE):g}/{float(INVESTMENT_TOTAL):g}{PAIR_WITH}) - Session trades: {session_profit:.2f}% (all time: {PROFIT_HISTORY:.2f}%) - Actual profit: {INVESTMENT_GAIN:.2f}% ({float(TOTAL_GAINS):g}{PAIR_WITH}) ')
+    print(f'Trade slots: {len(coins_bought)}/{TRADE_SLOTS} ({float(CURRENT_EXPOSURE):g}/{float(INVESTMENT_TOTAL):g}{PAIR_WITH}) - Session trades: {session_profit:.2f}% (all time: {PROFIT_HISTORY:.2f}%) - Actual profit: {INVESTMENT_GAIN:.2f}% ({TOTAL_GAINS}{PAIR_WITH}) ')
 
     return
 
