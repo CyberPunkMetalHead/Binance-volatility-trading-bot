@@ -35,7 +35,7 @@ You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/202
 ## 💥 Disclaimer
 
 All investment strategies and investments involve risk of loss. 
-**Nothing contained in this program, scripts, code or repositoy should be construed as investment advice.**
+**Nothing contained in this program, scripts, code or repository should be construed as investment advice.**
 Any reference to an investment's past or potential performance is not, 
 and should not be construed as, a recommendation or as a guarantee of 
 any specific outcome or profit.
