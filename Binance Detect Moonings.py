@@ -506,7 +506,7 @@ if __name__ == '__main__':
         DEBUG = True
 
     # Load creds for correct environment
-    access_key, secret_key = load_correct_creds(parsed_creds)
+    access_key, secret_key = load_correct_creds(parsed_creds, testnet=TEST_MODE)
 
     if DEBUG:
         print(f'loaded config below\n{json.dumps(parsed_config, indent=4)}')
@@ -515,9 +515,9 @@ if __name__ == '__main__':
 
     # Authenticate with the client, Ensure API key is good before continuing
     if AMERICAN_USER:
-        client = Client(access_key, secret_key, tld='us')
+        client = Client(access_key, secret_key, tld='us', testnet=TEST_MODE)
     else:
-        client = Client(access_key, secret_key)
+        client = Client(access_key, secret_key, testnet=TEST_MODEc)
         
     # If the users has a bad / incorrect API key.
     # this will stop the script from starting, and display a helpful error.

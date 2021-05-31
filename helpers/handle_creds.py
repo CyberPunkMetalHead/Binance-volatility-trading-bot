@@ -1,5 +1,8 @@
-def load_correct_creds(creds):
-    return creds['prod']['access_key'], creds['prod']['secret_key']
+def load_correct_creds(creds, testnet=False):
+    if (testnet):
+        return creds['testnet']['access_key'], creds['testnet']['secret_key'] 
+    else:
+        return creds['prod']['access_key'], creds['prod']['secret_key']
 
 
 
