@@ -249,7 +249,7 @@ def balance_report():
     INVESTMENT_TOTAL  = round(INVESTMENT_TOTAL,decimals() )
     CURRENT_EXPOSURE = round(CURRENT_EXPOSURE,decimals() )
 
-    print(f'Trade slots: {len(coins_bought)}/{TRADE_SLOTS} ({float(CURRENT_EXPOSURE):g}/{float(INVESTMENT_TOTAL):g}{PAIR_WITH}) | Open trades: {unrealised_percent:.2f}% | Closed trades: {session_profit:.2f}% (all time: {PROFIT_HISTORY:.2f}%) | Actual profit: {INVESTMENT_GAIN:.2f}% ({TOTAL_GAINS:.{decimals()}f}{PAIR_WITH}) ')
+    print(f'Trade slots: {len(coins_bought)}/{TRADE_SLOTS} ({float(CURRENT_EXPOSURE):g}/{float(INVESTMENT_TOTAL):g}{PAIR_WITH}) | Open trades: {(unrealised_percent/len(coins_bought)):.2f}% | Closed trades: {session_profit:.2f}% (all time: {PROFIT_HISTORY:.2f}%) | Actual profit: {INVESTMENT_GAIN:.2f}% ({TOTAL_GAINS:.{decimals()}f}{PAIR_WITH}) ')
 
     return
 
