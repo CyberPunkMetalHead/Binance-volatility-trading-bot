@@ -317,7 +317,7 @@ def convert_volume():
         except:
             pass
 
-        # calculate the volume in coin from QUANTITY in USDT (default)
+        # calculate the volume in coin from QUANTITY in PAIR_WITH (default)
         volume[coin] = float(QUANTITY / float(last_price[coin]['price']))
 
         # define the volume with the correct step size
@@ -609,8 +609,8 @@ if __name__ == '__main__':
     if not TEST_MODE:
         if not args.notimeout: # if notimeout skip this (fast for dev tests)
             print('WARNING: test mode is disabled in the configuration, you are using live funds.')
-            print('WARNING: Waiting 30 seconds before live trading as a security measure!')
-            time.sleep(30)
+            print('WARNING: Waiting 10 seconds before live trading as a security measure!')
+            time.sleep(10)
 
     signals = glob.glob("signals/*.exs")
     for filename in signals:
