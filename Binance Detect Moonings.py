@@ -66,8 +66,9 @@ class txcolors:
 
 
 # tracks profit/loss each session
-global session_profit
+global session_profit, unrealised_percent
 session_profit = 0
+unrealised_percent = 0
 
 global profit_history
 try:
@@ -234,21 +235,21 @@ def external_signals():
             if DEBUG: print(f"{txcolors.WARNING}Could not remove external signalling file{txcolors.DEFAULT}")
 
     return external_list
+    
 
 def balance_report():
-    global profit_history
+    global profit_history, unrealised_percent
     INVESTMENT_TOTAL = (QUANTITY * TRADE_SLOTS)
     CURRENT_EXPOSURE = (QUANTITY * len(coins_bought))
     TOTAL_GAINS = ((QUANTITY * session_profit) / 100)
     NEW_BALANCE = (INVESTMENT_TOTAL + TOTAL_GAINS)
     INVESTMENT_GAIN = (TOTAL_GAINS / INVESTMENT_TOTAL) * 100
     PROFIT_HISTORY = profit_history
-
     # truncating some of the above values to the correct decimal places before printing
     INVESTMENT_TOTAL  = round(INVESTMENT_TOTAL,decimals() )
     CURRENT_EXPOSURE = round(CURRENT_EXPOSURE,decimals() )
 
-    print(f'Trade slots: {len(coins_bought)}/{TRADE_SLOTS} ({float(CURRENT_EXPOSURE):g}/{float(INVESTMENT_TOTAL):g}{PAIR_WITH}) - Session trades: {session_profit:.2f}% (all time: {PROFIT_HISTORY:.2f}%) - Actual profit: {INVESTMENT_GAIN:.2f}% ({TOTAL_GAINS:.{decimals()}f}{PAIR_WITH}) ')
+    print(f'Trade slots: {len(coins_bought)}/{TRADE_SLOTS} ({float(CURRENT_EXPOSURE):g}/{float(INVESTMENT_TOTAL):g}{PAIR_WITH}) | Open trades: {unrealised_percent:.2f}% | Closed trades: {session_profit:.2f}% (all time: {PROFIT_HISTORY:.2f}%) | Actual profit: {INVESTMENT_GAIN:.2f}% ({TOTAL_GAINS:.{decimals()}f}{PAIR_WITH}) ')
 
     return
 
@@ -386,9 +387,7 @@ def buy():
 
 def sell_coins():
     '''sell coins that have reached the STOP LOSS or TAKE PROFIT threshold'''
-
     global hsp_head, session_profit, profit_history
-
     last_price = get_price(False) # don't populate rolling window
     #last_price = get_price(add_to_historical=True) # don't populate rolling window
     coins_sold = {}
@@ -649,3 +648,14 @@ if __name__ == '__main__':
         update_portfolio(orders, last_price, volume)
         coins_sold = sell_coins()
         remove_from_portfolio(coins_sold)
+
+        unrealised_percent = 0
+        for coin in list(coins_bought):
+            LastPrice = float(last_price[coin]['price'])
+            # sell fee below would ofc only apply if transaction was closed at the current LastPrice
+            sellFee = (LastPrice * (TRADING_FEE/100))
+            BuyPrice = float(coins_bought[coin]['bought_at'])
+            buyFee = (BuyPrice * (TRADING_FEE/100))
+            PriceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
+            if len(coins_bought) > 0:
+                unrealised_percent = unrealised_percent + (PriceChange-(buyFee+sellFee))
