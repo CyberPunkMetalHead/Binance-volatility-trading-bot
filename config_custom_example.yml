@@ -35,7 +35,7 @@ trading_options:
     - UP
 
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * QUANTITY)
-  TRADE_SLOTS: 10
+  TRADE_SLOTS: 61
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 5
@@ -48,7 +48,7 @@ trading_options:
   CHANGE_IN_PRICE: 2.5
 
   # define in % when to sell a coin that's not making a profit.
-  STOP_LOSS: 5
+  STOP_LOSS: 99
 
   # define in % when to take profit on a profitable coin.
   TAKE_PROFIT: .6
