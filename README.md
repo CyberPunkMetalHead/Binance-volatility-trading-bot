@@ -13,7 +13,6 @@ The bot will listen to changes in price accross all coins on Binance. By default
 - The bot checks if the any coin has gone up by more than 3% in the last 5 minutes
 - The bot will buy 100 USDT of the most volatile coins on Binance
 - The bot will sell at 6% profit or 3% stop loss
-- The bot works with both Main and Testnet
 
 
 You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/2021/05/08/how-to-code-a-binance-trading-bot-that-detects-the-most-volatile-coins-on-binance/) for a step-by-step walkthrough of the bot development.
