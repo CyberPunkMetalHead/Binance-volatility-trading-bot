@@ -1,4 +1,11 @@
-# MAIN NET
+# Ensure your keys and values have a space between them
+# Example:
+# Bad:
+#   access_key:myaccess_key
+# Good:
+#   access_key: myaccess_key 
+
+
 prod:
   access_key: replace_me
   secret_key: replace_me
