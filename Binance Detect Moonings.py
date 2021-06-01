@@ -66,15 +66,17 @@ class txcolors:
 
 
 # tracks profit/loss each session
-global session_profit, unrealised_percent
+global session_profit, unrealised_percent, unrealised_percent_delay
 session_profit = 0
 unrealised_percent = 0
+unrealised_percent_delay = 0
 
 global profit_history
 try:
     profit_history
 except NameError:
     profit_history = 0      # or some other default value.
+
 
 # print with timestamps
 old_out = sys.stdout
@@ -254,8 +256,8 @@ def balance_report():
     else:
         UNREALISED_PERCENT = 0
 
-    print(f'Trade slots: {len(coins_bought)}/{TRADE_SLOTS} ({float(CURRENT_EXPOSURE):g}/{float(INVESTMENT_TOTAL):g}{PAIR_WITH}) | Open trades: {UNREALISED_PERCENT:.2f}% | Closed trades: {session_profit:.2f}% (all time: {PROFIT_HISTORY:.2f}%) | Actual profit: {INVESTMENT_GAIN:.2f}% ({TOTAL_GAINS:.{decimals()}f}{PAIR_WITH})')
-
+    print(f'Trade slots: {len(coins_bought)}/{TRADE_SLOTS} ({float(CURRENT_EXPOSURE):g}/{float(INVESTMENT_TOTAL):g}{PAIR_WITH}) | Open trades: {UNREALISED_PERCENT:.2f}% | Closed trades: {session_profit:.2f}% (all time: {PROFIT_HISTORY:.2f}%) | Session profit: {INVESTMENT_GAIN:.2f}% ({TOTAL_GAINS:.{decimals()}f}{PAIR_WITH})')
+    unrealised_percent_calc()
     return
 
 
@@ -502,6 +504,24 @@ def write_log(logline):
     with open(LOG_FILE,'a+') as f:
         f.write(timestamp + ' ' + logline + '\n')
 
+def unrealised_percent_calc():
+    global unrealised_percent_delay, unrealised_percent
+    if (unrealised_percent_delay > 3):
+        unrealised_percent = 0
+        for coin in list(coins_bought):
+            LastPrice = float(last_price[coin]['price'])
+            # sell fee below would ofc only apply if transaction was closed at the current LastPrice
+            sellFee = (LastPrice * (TRADING_FEE/100))
+            BuyPrice = float(coins_bought[coin]['bought_at'])
+            buyFee = (BuyPrice * (TRADING_FEE/100))
+            PriceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
+            if len(coins_bought) > 0:
+                unrealised_percent = unrealised_percent + (PriceChange-(buyFee+sellFee))
+                unrealised_percent_delay = 0
+    else:
+        unrealised_percent_delay =  unrealised_percent_delay + 1
+    return unrealised_percent
+
 if __name__ == '__main__':
 
     # Load arguments then parse settings
@@ -648,14 +668,3 @@ if __name__ == '__main__':
         update_portfolio(orders, last_price, volume)
         coins_sold = sell_coins()
         remove_from_portfolio(coins_sold)
-
-        unrealised_percent = 0
-        for coin in list(coins_bought):
-            LastPrice = float(last_price[coin]['price'])
-            # sell fee below would ofc only apply if transaction was closed at the current LastPrice
-            sellFee = (LastPrice * (TRADING_FEE/100))
-            BuyPrice = float(coins_bought[coin]['bought_at'])
-            buyFee = (BuyPrice * (TRADING_FEE/100))
-            PriceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
-            if len(coins_bought) > 0:
-                unrealised_percent = unrealised_percent + (PriceChange-(buyFee+sellFee))
