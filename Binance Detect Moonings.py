@@ -186,7 +186,8 @@ def wait_for_price():
     exnumber = 0
 
     for excoin in externals:
-        if excoin not in volatile_coins and excoin not in coins_bought and (len(coins_bought) + exnumber) < MAX_COINS:
+        if excoin not in volatile_coins and excoin not in coins_bought and \
+                (len(coins_bought) + exnumber + len(volatile_coins)) < MAX_COINS:
             volatile_coins[excoin] = 1
             exnumber +=1
             print(f'External signal received on {excoin}, calculating volume in {PAIR_WITH}')
