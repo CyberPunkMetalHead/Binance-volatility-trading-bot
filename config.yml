@@ -51,6 +51,9 @@ trading_options:
   # define in % when to take profit on a profitable coin.
   TAKE_PROFIT: .8
 
+  # Sell coin after a fixed duration in minutes. Value 0 means this fuctinality is disables.
+  SELL_AFTER_DURATION: 0
+  
   # Use custom tickers.txt list for filtering pairs.
   CUSTOM_LIST: True
    
