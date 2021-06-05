@@ -367,6 +367,8 @@ def sell_coins():
         LastPrice = float(last_price[coin]['price'])
         BuyPrice = float(coins_bought[coin]['bought_at'])
         PriceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
+        HoldTime = datetime.now().timestamp() - float(coins_bought[coin]['timestamp'])
+        HoldTime = HoldTime/60.0
 
         # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
         if LastPrice > TP and USE_TRAILING_STOP_LOSS:
@@ -378,9 +380,16 @@ def sell_coins():
             continue
 
         # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
-        if LastPrice < SL or LastPrice > TP and not USE_TRAILING_STOP_LOSS:
-            print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange-(TRADING_FEE*2):.2f}% Est:${(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.2f}{txcolors.DEFAULT}")
-
+        if (SELL_AFTER_DURATION > 0 and HoldTime >= SELL_AFTER_DURATION) or LastPrice < SL or LastPrice > TP and not USE_TRAILING_STOP_LOSS:
+            if LastPrice < SL:
+                print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange-(TRADING_FEE*2):.2f}% Est:${(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.2f} Held for {int(HoldTime)} minutes {txcolors.DEFAULT}")
+            if LastPrice > TP:
+                print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}TP reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange-(TRADING_FEE*2):.2f}% Est:${(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.2f} Held for {int(HoldTime)} minutes {txcolors.DEFAULT}")
+            if HoldTime >= SELL_AFTER_DURATION:
+                print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}HT reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange-(TRADING_FEE*2):.2f}% Est:${(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.2f} Held for {int(HoldTime)} minutes {txcolors.DEFAULT}")
+            else:
+                print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}HT, TP or SL reached, selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} : {PriceChange-(TRADING_FEE*2):.2f}% Est:${(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.2f} Held for {int(HoldTime)} minutes {txcolors.DEFAULT}")
+            
             # try to create a real order
             try:
 
@@ -414,7 +423,7 @@ def sell_coins():
         # no action; print once every TIME_DIFFERENCE
         if hsp_head == 1:
             if len(coins_bought) > 0:
-                print(f'TP or SL not yet reached, not selling {coin} for now {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange-(TRADING_FEE*2):.2f}% Est:${(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.2f}{txcolors.DEFAULT}')
+                print(f'TP or SL not yet reached, not selling {coin} for now. {BuyPrice} - {LastPrice} : {txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{PriceChange-(TRADING_FEE*2):.2f}% Est:${(QUANTITY*(PriceChange-(TRADING_FEE*2)))/100:.2f}. Held for {int(HoldTime)} minutes{txcolors.DEFAULT}')
 
     if hsp_head == 1 and len(coins_bought) == 0: print(f'Not holding any coins')
  
@@ -501,6 +510,7 @@ if __name__ == '__main__':
     TRAILING_STOP_LOSS = parsed_config['trading_options']['TRAILING_STOP_LOSS']
     TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
     TRADING_FEE = parsed_config['trading_options']['TRADING_FEE']
+    SELL_AFTER_DURATION = parsed_config['trading_options']['SELL_AFTER_DURATION']
     SIGNALLING_MODULES = parsed_config['trading_options']['SIGNALLING_MODULES']
     if DEBUG_SETTING or args.debug:
         DEBUG = True
