@@ -16,6 +16,19 @@ from helpers.handle_creds import (
     load_correct_creds
 )
 
+from colorama import init
+init()
+
+# for colourful logging to the console
+class txcolors:
+    BUY = '\033[92m'
+    WARNING = '\033[93m'
+    SELL_LOSS = '\033[91m'
+    SELL_PROFIT = '\033[32m'
+    DIM = '\033[2m\033[35m'
+    DEFAULT = '\033[39m'
+
+
 args = parse_args()
 
 DEFAULT_CONFIG_FILE = '../config.yml'
@@ -41,6 +54,8 @@ def write_log(logline):
 
 with open('../coins_bought.json', 'r') as f:
     coins = json.load(f)
+    total_profit = 0
+    total_price_change = 0
 
     for coin in list(coins):
         sell_coin = client.create_order(
@@ -55,8 +70,18 @@ with open('../coins_bought.json', 'r') as f:
         profit = (LastPrice - BuyPrice) * coins[coin]['volume']
         PriceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
 
+        total_profit += profit
+        total_price_change += PriceChange
+
+        text_color = txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS
+        console_log_text = f"{text_color}Sell: {coins[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%{txcolors.DEFAULT}"
+        print(console_log_text)
+
         if LOG_TRADES:
             timestamp = datetime.now().strftime("%d/%m %H:%M:%S")
             write_log(f"Sell: {coins[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} Profit: {profit:.2f} {PriceChange:.2f}%")
+    
+    text_color = txcolors.SELL_PROFIT if total_price_change >= 0. else txcolors.SELL_LOSS
+    print(f"Total Profit: {text_color}{total_profit:.2f}{txcolors.DEFAULT}. Total Price Change: {text_color}{total_price_change:.2f}%{txcolors.DEFAULT}")
 
 os.remove('../coins_bought.json')

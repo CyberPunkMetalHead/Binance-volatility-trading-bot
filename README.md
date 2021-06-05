@@ -6,7 +6,7 @@ In addition to that, this Binance trading algorithm will also keep track of all 
 
 
 
-The bot will listen to changes in price accross all coins on Binance. By default we're only picking USDT pairs. We're excluding Margin (like BTCDOWNUSDT) and Fiat pairs
+The bot will listen to changes in price accross all coins on Binance. By default, we're only picking USDT pairs. We're excluding Margin (like BTCDOWNUSDT) and Fiat pairs
 
 > Information below is an example and is all configurable
 
@@ -15,13 +15,13 @@ The bot will listen to changes in price accross all coins on Binance. By default
 - The bot will sell at 6% profit or 3% stop loss
 
 
-You can follow the [Biance volatility bot guide](https://www.cryptomaton.org/2021/05/08/how-to-code-a-binance-trading-bot-that-detects-the-most-volatile-coins-on-binance/) for a step-by-step walkthrough of the bot development.
+You can follow the [Binance volatility bot guide](https://www.cryptomaton.org/2021/05/08/how-to-code-a-binance-trading-bot-that-detects-the-most-volatile-coins-on-binance/) for a step-by-step walkthrough of the bot development.
 
 ## READ BEFORE USE
 1. If you use the `TEST_MODE: False` in your config, you will be using REAL money.
 2. To ensure you do not do this, ALWAYS check the `TEST_MODE` configuration item in the config.yml file..
 3. This is a framework for users to modify and adapt to their overall strategy and needs, and in no way a turn-key solution.
-4. Depending on the current market, the default config might not do much so you will have to adapt it to your own strategy.
+4. Depending on the current market, the default config might not do much, so you will have to adapt it to your own strategy.
 
 ## Usage
 Please checkout our wiki pages:
