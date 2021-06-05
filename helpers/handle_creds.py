@@ -1,9 +1,20 @@
+from sys import exit
+
+
 def load_correct_creds(creds):
-    return creds['prod']['access_key'], creds['prod']['secret_key']
+    try:
 
-
-
-
+        return creds['prod']['access_key'], creds['prod']['secret_key']
+    
+    except TypeError as te:
+        message = 'Your credentials are formatted incorectly\n'
+        message += f'TypeError:Exception:\n\t{str(te)}'
+        exit(message)
+    except Exception as e:
+        message = 'oopsies, looks like you did something real bad. Fallback Exception caught...\n'
+        message += f'Exception:\n\t{str(e)}'
+        exit(message)
+        
 
 def test_api_key(client, BinanceAPIException):
     """Checks to see if API keys supplied returns errors
@@ -33,12 +44,15 @@ def test_api_key(client, BinanceAPIException):
             issue = "https://github.com/CyberPunkMetalHead/Binance-volatility-trading-bot/issues/28"
             desc = "Ensure your OS is time synced with a timeserver. See issue."
             msg = f"Timestamp for this request was 1000ms ahead of the server's time.\n  {issue}\n  {desc}"
-        
+        elif e.code == -1021:
+            desc = "Your operating system time is not properly synced... Please sync ntp time with 'pool.ntp.org'"
+            msg = f"{desc}\nmaybe try this:\n\tsudo ntpdate pool.ntp.org"
         else:
             msg = "Encountered an API Error code that was not caught nicely, please open issue...\n"
-            msg += e
+            msg += str(e)
 
         return False, msg
     
     except Exception as e:
         return False, f"Fallback exception occured:\n{e}"
+
