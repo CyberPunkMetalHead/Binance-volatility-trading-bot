@@ -33,6 +33,7 @@ init()
 # needed for the binance API / websockets / Exception handling
 from binance.client import Client
 from binance.exceptions import BinanceAPIException
+from requests.exceptions import ReadTimeout, ConnectionError
 
 # used for dates
 from datetime import date, datetime, timedelta
@@ -589,8 +590,19 @@ if __name__ == '__main__':
 
     # seed initial prices
     get_price()
+    READ_TIMEOUT_COUNT=0
+    CONNECTION_ERROR_COUNT = 0
     while True:
-        orders, last_price, volume = buy()
-        update_portfolio(orders, last_price, volume)
-        coins_sold = sell_coins()
-        remove_from_portfolio(coins_sold)
+        try:
+            orders, last_price, volume = buy()
+            update_portfolio(orders, last_price, volume)
+            coins_sold = sell_coins()
+            remove_from_portfolio(coins_sold)
+        except ReadTimeout as rt:
+            READ_TIMEOUT_COUNT += 1
+            print(f'{txcolors.WARNING}We got a timeout error from from binance. Going to re-loop. Current Count: {READ_TIMEOUT_COUNT}\n{rt}{txcolors.DEFAULT}')
+        except ConnectionError as ce:
+            CONNECTION_ERROR_COUNT +=1 
+            print(f'{txcolors.WARNING}We got a timeout error from from binance. Going to re-loop. Current Count: {CONNECTION_ERROR_COUNT}\n{ce}{txcolors.DEFAULT}')
+
+
