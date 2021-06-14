@@ -28,12 +28,16 @@ import glob
 
 # Needed for colorful console output Install with: python3 -m pip install colorama (Mac/Linux) or pip install colorama (PC)
 from colorama import init
+
 init()
 
 # needed for the binance API / websockets / Exception handling
 from binance.client import Client
 from binance.exceptions import BinanceAPIException
 from requests.exceptions import ReadTimeout, ConnectionError
+
+# needed to round to step size
+from binance.helpers import round_step_size
 
 # used for dates
 from datetime import date, datetime, timedelta
@@ -55,7 +59,6 @@ from helpers.handle_creds import (
     load_correct_creds, test_api_key
 )
 
-
 # for colourful logging to the console
 class txcolors:
     BUY = '\033[92m'
@@ -64,7 +67,6 @@ class txcolors:
     SELL_PROFIT = '\033[32m'
     DIM = '\033[2m\033[35m'
     DEFAULT = '\033[39m'
-
 
 # tracks profit/loss each session
 global session_profit
@@ -104,11 +106,12 @@ def get_price(add_to_historical=True):
     for coin in prices:
 
         if CUSTOM_LIST:
-            if any(item + PAIR_WITH == coin['symbol'] for item in tickers) and all(item not in coin['symbol'] for item in FIATS):
-                initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
+            if any(item + PAIR_WITH == coin['symbol'] for item in tickers) and all(
+                    item not in coin['symbol'] for item in FIATS):
+                initial_price[coin['symbol']] = {'price': coin['price'], 'time': datetime.now()}
         else:
             if PAIR_WITH in coin['symbol'] and all(item not in coin['symbol'] for item in FIATS):
-                initial_price[coin['symbol']] = { 'price': coin['price'], 'time': datetime.now()}
+                initial_price[coin['symbol']] = {'price': coin['price'], 'time': datetime.now()}
 
     if add_to_historical:
         hsp_head += 1
@@ -135,7 +138,7 @@ def wait_for_price():
     coins_unchanged = 0
 
     pause_bot()
-
+    
     if historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
 
         # sleep for exactly the amount of time required
@@ -299,7 +302,6 @@ def buy():
         # only buy if the there are no active trades on the coin
         if coin not in coins_bought:
             print(f"{txcolors.BUY}Preparing to buy {volume[coin]} {coin}{txcolors.DEFAULT}")
-
             if TEST_MODE:
                 orders[coin] = [{
                     'symbol': coin,
@@ -316,10 +318,10 @@ def buy():
             # try to create a real order if the test orders did not raise an exception
             try:
                 buy_limit = client.create_order(
-                    symbol = coin,
-                    side = 'BUY',
-                    type = 'MARKET',
-                    quantity = volume[coin]
+                    symbol=coin,
+                    side='BUY',
+                    type='MARKET',
+                    quantity=volume[coin]
                 )
 
             # error handling here in case position cannot be placed
@@ -362,12 +364,16 @@ def sell_coins():
 
     for coin in list(coins_bought):
         # define stop loss and take profit
-        TP = float(coins_bought[coin]['bought_at']) + (float(coins_bought[coin]['bought_at']) * coins_bought[coin]['take_profit']) / 100
-        SL = float(coins_bought[coin]['bought_at']) + (float(coins_bought[coin]['bought_at']) * coins_bought[coin]['stop_loss']) / 100
-
+        BuyPrice = float(coins_bought[coin]['bought_at'])
+        try:
+            TP = BuyPrice + (BuyPrice) * coins_bought[coin]['take_profit']) / 100
+            SL = BuyPrice + (BuyPrice) * coins_bought[coin]['stop_loss']) / 100
+        # When an older version of the script is being executed
+        except KeyError:
+            TP = BuyPrice + (BuyPrice) / 100
+            SL = BuyPrice + (BuyPrice) / 100
 
         LastPrice = float(last_price[coin]['price'])
-        BuyPrice = float(coins_bought[coin]['bought_at'])
         PriceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
 
         # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
@@ -385,14 +391,20 @@ def sell_coins():
 
             # try to create a real order
             try:
+                try:
+                    rounded_amount = round_step_size(coins_bought[coin]['volume'], coins_bought[coin]['step_size'])
+                except Exception:
+                    tick_size = float(next(
+                        filter(lambda f: f['filterType'] == 'LOT_SIZE', client.get_symbol_info(coin)['filters'])
+                    )['stepSize'])
+                    rounded_amount = round_step_size(coins_bought[coin]['volume'], tick_size)
 
                 if not TEST_MODE:
                     sell_coins_limit = client.create_order(
                         symbol = coin,
                         side = 'SELL',
                         type = 'MARKET',
-                        quantity = coins_bought[coin]['volume']
-
+                        quantity = rounded_amount
                     )
 
             # error handling here in case position cannot be placed
@@ -427,7 +439,9 @@ def update_portfolio(orders, last_price, volume):
     '''add every coin bought to our portfolio for tracking/selling later'''
     if DEBUG: print(orders)
     for coin in orders:
-
+        coin_step_size = float(next(
+                        filter(lambda f: f['filterType'] == 'LOT_SIZE', client.get_symbol_info(orders[coin][0]['symbol'])['filters'])
+                        )['stepSize'])
         coins_bought[coin] = {
             'symbol': orders[coin][0]['symbol'],
             'orderid': orders[coin][0]['orderId'],
@@ -436,7 +450,8 @@ def update_portfolio(orders, last_price, volume):
             'volume': volume[coin],
             'stop_loss': -STOP_LOSS,
             'take_profit': TAKE_PROFIT,
-            }
+            'step_size': coin_step_size,
+        }
 
         # save the coins in a json file in the same directory
         with open(coins_bought_file_path, 'w') as file:
@@ -456,7 +471,7 @@ def remove_from_portfolio(coins_sold):
 
 def write_log(logline):
     timestamp = datetime.now().strftime("%d/%m %H:%M:%S")
-    with open(LOG_FILE,'a+') as f:
+    with open(LOG_FILE, 'a+') as f:
         f.write(timestamp + ' ' + logline + '\n')
 
 if __name__ == '__main__':
