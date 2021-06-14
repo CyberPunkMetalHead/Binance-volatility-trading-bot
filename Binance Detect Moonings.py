@@ -362,18 +362,16 @@ def sell_coins():
 
     for coin in list(coins_bought):
         # define stop loss and take profit
+        BuyPrice = float(coins_bought[coin]['bought_at'])
         try:
-            TP = float(coins_bought[coin]['bought_at']) + (
-                    float(coins_bought[coin]['bought_at']) * coins_bought[coin]['take_profit']) / 100
-            SL = float(coins_bought[coin]['bought_at']) + (
-                    float(coins_bought[coin]['bought_at']) * coins_bought[coin]['stop_loss']) / 100
+            TP = BuyPrice + (BuyPrice) * coins_bought[coin]['take_profit']) / 100
+            SL = BuyPrice + (BuyPrice) * coins_bought[coin]['stop_loss']) / 100
         # When an older version of the script is being executed
         except KeyError:
-            TP = float(coins_bought[coin]['bought_at']) + (float(coins_bought[coin]['bought_at'])) / 100
-            SL = float(coins_bought[coin]['bought_at']) + (float(coins_bought[coin]['bought_at'])) / 100
+            TP = BuyPrice + (BuyPrice) / 100
+            SL = BuyPrice + (BuyPrice) / 100
 
         LastPrice = float(last_price[coin]['price'])
-        BuyPrice = float(coins_bought[coin]['bought_at'])
         PriceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
 
         # check that the price is above the take profit and readjust SL and TP accordingly if trialing stop loss used
