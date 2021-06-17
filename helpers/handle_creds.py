@@ -4,17 +4,17 @@ from sys import exit
 def load_correct_creds(creds):
     try:
 
-        return creds['prod']['access_key'], creds['prod']['secret_key']
-    
+        return creds["prod"]["access_key"], creds["prod"]["secret_key"]
+
     except TypeError as te:
-        message = 'Your credentials are formatted incorectly\n'
-        message += f'TypeError:Exception:\n\t{str(te)}'
+        message = "Your credentials are formatted incorectly\n"
+        message += f"TypeError:Exception:\n\t{str(te)}"
         exit(message)
     except Exception as e:
-        message = 'oopsies, looks like you did something real bad. Fallback Exception caught...\n'
-        message += f'Exception:\n\t{str(e)}'
+        message = "oopsies, looks like you did something real bad. Fallback Exception caught...\n"
+        message += f"Exception:\n\t{str(e)}"
         exit(message)
-        
+
 
 def test_api_key(client, BinanceAPIException):
     """Checks to see if API keys supplied returns errors
@@ -29,15 +29,14 @@ def test_api_key(client, BinanceAPIException):
     try:
         client.get_account()
         return True, "API key validated succesfully"
-    
-    except BinanceAPIException as e:   
-    
-      
-        if e.code in  [-2015,-2014]:
+
+    except BinanceAPIException as e:
+
+        if e.code in [-2015, -2014]:
             bad_key = "Your API key is not formatted correctly..."
             america = "If you are in america, you will have to update the config to set AMERICAN_USER: True"
             ip_b = "If you set an IP block on your keys make sure this IP address is allowed. check ipinfo.io/ip"
-            
+
             msg = f"Your API key is either incorrect, IP blocked, or incorrect tld/permissons...\n  most likely: {bad_key}\n  {america}\n  {ip_b}"
 
         elif e.code == -2021:
@@ -52,7 +51,6 @@ def test_api_key(client, BinanceAPIException):
             msg += str(e)
 
         return False, msg
-    
+
     except Exception as e:
         return False, f"Fallback exception occured:\n{e}"
-
