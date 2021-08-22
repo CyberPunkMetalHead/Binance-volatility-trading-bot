@@ -2,7 +2,7 @@
 script_options:
   # Switch between testnet and mainnet
   # Setting this to False will use REAL funds, use at your own risk
-  TEST_MODE: True
+  TEST_MODE: False
   LOG_TRADES: True
   LOG_FILE: 'trades.txt'
 
@@ -33,7 +33,7 @@ trading_options:
     - UP
 
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least MAX_COINS * QUANTITY)
-  MAX_COINS: 7
+  MAX_COINS: 3
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 2
@@ -43,7 +43,7 @@ trading_options:
   RECHECK_INTERVAL: 10
 
   # the difference in % between the first and second checks for the price.
-  CHANGE_IN_PRICE: 10
+  CHANGE_IN_PRICE: 6
 
   # define in % when to sell a coin that's not making a profit.
   STOP_LOSS: 5
@@ -69,7 +69,13 @@ trading_options:
   # If using 0.75% (using BNB for fees) you must have BNB in your account to cover trading fees.
   # If using BNB for fees, it MUST be enabled in your Binance 'Dashboard' page (checkbox).
   TRADING_FEE: .075
-  
+
+  # Tickers list generator
+  # If True - generates actual top of market cap coins according to PAIR_WITH token
+  GENERATE_NEW_TICKERS_LIST: True
+  # If GENERATE_NEW_TICKERS_LIST=True, this value is the size of top
+  NEW_TICKERS_LIST_COUNT: 120
+
   SIGNALLING_MODULES:
     - pausebotmod
     - signalsamplemod
