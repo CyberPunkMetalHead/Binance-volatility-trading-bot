@@ -69,7 +69,14 @@ trading_options:
   # If using 0.75% (using BNB for fees) you must have BNB in your account to cover trading fees.
   # If using BNB for fees, it MUST be enabled in your Binance 'Dashboard' page (checkbox).
   TRADING_FEE: .075
-  
+
+  # Tickers list generator
+  # If True - generates actual top of market cap coins according to PAIR_WITH token
+  GENERATE_NEW_TICKERS_LIST: True
+
+  # If GENERATE_NEW_TICKERS_LIST=True, a value of NEW_TICKERS_LIST_COUNT will be the size of top list
+  NEW_TICKERS_LIST_COUNT: 120
+
   SIGNALLING_MODULES:
     - pausebotmod
     - signalsamplemod
