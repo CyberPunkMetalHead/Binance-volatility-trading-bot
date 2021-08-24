@@ -15,21 +15,21 @@ FULL_LOG = False # List analysis result to console
 def analyze():
     analysis = {}
     handler = {}
-    
+
     handler = TA_Handler(
             symbol=SYMBOL,
             exchange=EXCHANGE,
             screener=SCREENER,
             interval=INTERVAL,
             timeout= 10)
- 
+
     try:
         analysis = handler.get_analysis()
     except Exception as e:
         print("pausebotmod:")
         print("Exception:")
         print(e)
-    
+
     ma_sell = analysis.moving_averages['SELL']
     if ma_sell >= THRESHOLD:
         paused = True
@@ -41,17 +41,18 @@ def analyze():
     return paused
 #if __name__ == '__main__':
 def do_work():
-      
+
     while True:
-        if not threading.main_thread().is_alive(): exit()
+        if not threading.main_thread().is_alive():
+            exit()
         # print(f'pausebotmod: Fetching market state')
         paused = analyze()
         if paused:
-            with open('signals/paused.exc','a+') as f:
+            with open('signals/paused.exc', 'a+') as f:
                 f.write('yes')
         else:
             if os.path.isfile("signals/paused.exc"):
                 os.remove('signals/paused.exc')
-                        
+
         # print(f'pausebotmod: Waiting {TIME_TO_WAIT} minutes for next market checkup')    
         time.sleep((TIME_TO_WAIT*60))
