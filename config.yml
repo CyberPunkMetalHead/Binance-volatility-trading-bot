@@ -40,13 +40,13 @@ trading_options:
 
   # Number of times to check for TP/SL during each TIME_DIFFERENCE (minimum: 1).
   # Don't spam the Binance API, you will be banned (max 1200 requests per minute per IP).
-  RECHECK_INTERVAL: 10
+  RECHECK_INTERVAL: 100
 
   # the difference in % between the first and second checks for the price.
-  CHANGE_IN_PRICE: .6
+  CHANGE_IN_PRICE: .4
 
   # define in % when to sell a coin that's not making a profit.
-  STOP_LOSS: .6
+  STOP_LOSS: .4
 
   # define in % when to take profit on a profitable coin.
   TAKE_PROFIT: .8
