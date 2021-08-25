@@ -43,7 +43,7 @@ trading_options:
   'RENBTC', 'B' ]
 
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least MAX_COINS * QUANTITY)
-  MAX_COINS: 4
+  MAX_COINS: 6
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 1
