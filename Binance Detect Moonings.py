@@ -499,6 +499,8 @@ if __name__ == '__main__':
     TAKE_PROFIT = parsed_config['trading_options']['TAKE_PROFIT']
     CUSTOM_LIST = parsed_config['trading_options']['CUSTOM_LIST']
     TICKERS_LIST = parsed_config['trading_options']['TICKERS_LIST']
+    GENERATE_NEW_TICKERS_LIST = parsed_config['trading_options']['GENERATE_NEW_TICKERS_LIST']
+    NEW_TICKERS_LIST_COUNT = parsed_config['trading_options']['NEW_TICKERS_LIST_COUNT']
     USE_TRAILING_STOP_LOSS = parsed_config['trading_options']['USE_TRAILING_STOP_LOSS']
     TRAILING_STOP_LOSS = parsed_config['trading_options']['TRAILING_STOP_LOSS']
     TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
@@ -526,6 +528,10 @@ if __name__ == '__main__':
     api_ready, msg = test_api_key(client, BinanceAPIException)
     if api_ready is not True:
        exit(f'{txcolors.SELL_LOSS}{msg}{txcolors.DEFAULT}')
+
+    if GENERATE_NEW_TICKERS_LIST:
+        from generate_tickers import BinanceMarketCapFetcher
+        BinanceMarketCapFetcher(NEW_TICKERS_LIST_COUNT, PAIR_WITH, TICKERS_LIST).execute()
 
     # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
     if CUSTOM_LIST: tickers=[line.strip() for line in open(TICKERS_LIST)]
