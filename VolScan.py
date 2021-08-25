@@ -80,9 +80,7 @@ SCANNING_PERIOD = 3  # minutes
 # After which the calculation is performed. The price change is also calculated every 12 seconds.
 TIME_SLEEP = 30  # seconds
 
-# If True, an updated list of coins will be generated from the site - http://edgesforledges.com/watchlists/binance.
-# If False, then the list you create in TICKERS_LIST = 'tickers.txt' will be used.
-CREATE_TICKER_LIST = True
+TICKERS_LIST = parsed_config['trading_options']['TICKERS_LIST']
 
 # NUMBER_COINS_IN_LIST - Limit the number of coins that can be added to the dynamic list of volatile coins. For example,
 # if NUMBER_COINS_IN_LIST = 20,
@@ -105,15 +103,6 @@ CREATE_LIST_BY_COV_AND_PRICE_CHANGE = False
 # (At the top there will be coins with the highest CoV)
 # If False The list will be created only based on the Price Change.
 CREATE_LIST_BY_ONLY_COV = False
-
-# When creating a ticker list from the source site:
-# http://edgesforledges.com you can use the parameter (all or innovation-zone).
-# ticker_type = 'innovation-zone'
-ticker_type = 'all'
-if CREATE_TICKER_LIST:
-    TICKERS_LIST = 'tickers_all_USDT.txt'
-else:
-    TICKERS_LIST = 'tickers.txt'
 
 # BTC_FILTER - This feature is still in development.
 # Objective: Check the change in the price of bitcoin over the scanning period and,

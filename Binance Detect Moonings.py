@@ -233,7 +233,7 @@ def pause_bot():
     # start counting for how long the bot's been paused
     start_time = time.perf_counter()
 
-    while os.path.isfile("signals/paused.exc"):
+    while os.path.isfile("signals/paused.exc") or os.path.isfile("signals/tgbot_paused.exc"):
 
         if not bot_paused:
             print(f'{txcolors.WARNING}Pausing buying due to change in market conditions,'
@@ -622,12 +622,19 @@ if __name__ == '__main__':
                 if DEBUG:
                     print(f'{txcolors.WARNING}Could not remove external signalling file {filename}{txcolors.DEFAULT}')
 
+    if os.path.isfile("signals/tgbot_paused.exc"):
+        try:
+            os.remove("signals/tgbot_paused.exc")
+        except:
+            if DEBUG:
+                print(f'{txcolors.WARNING}Could not remove external signalling file tgbot_paused.exc{txcolors.DEFAULT}')
+
     if os.path.isfile("signals/paused.exc"):
         try:
             os.remove("signals/paused.exc")
         except:
             if DEBUG:
-                print(f'{txcolors.WARNING}Could not remove external signalling file {filename}{txcolors.DEFAULT}')
+                print(f'{txcolors.WARNING}Could not remove external signalling file paused.exc{txcolors.DEFAULT}')
 
     # load signalling modules
     try:
