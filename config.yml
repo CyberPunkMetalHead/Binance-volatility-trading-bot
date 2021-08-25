@@ -13,7 +13,7 @@ script_options:
 
 # These options apply to the trading methods the script executes
 trading_options:
- 
+
   # select your base currency to use for trading (trade for example USDT pairs)
   PAIR_WITH: USDT
 
@@ -32,52 +32,56 @@ trading_options:
     - DOWN
     - UP
 
+  # EX_PAIRS is a list of fiat currencies and margin symbols that I am excluding.
+  # Anything added here will be excluded from coin withdrawal and will not be sold.
+  EX_PAIRS: ['EUR', 'USD', 'GBP', 'BUSD', 'USDT', 'AUD', 'BRL', 'RUB', 'TRY', 'USDC', 'PAX', 'BIDR', 'DAI', 'IDRT',
+  'UAH', 'NGN', 'VAI', 'BVND', 'JPY', 'NCASH', 'UPUSDT', 'DOWNUSDT', 'USDTUP', 'USDTDOWN', 'BNBDOWN',
+  'EOSDOWN', 'XLMDOWN', 'UNIDOWN', 'LINKDOWN', 'FILDOWN', 'TRXDOWN', 'XRPDOWN', 'AAVEDOWN', 'SUSHIDOWN',
+  'XTZDOWN', 'ADADOWN', '1INCHDOWN', 'BTCDOWN', 'SXPDOWN', 'DOTDOWN', 'ETHDOWN', 'BCHDOWN', 'LTCDOWN',
+  'YFIDOWN', 'XTZUP', 'DOTUP', 'ADAUP', 'SUPER', 'AAVEUP', 'BTCUP', 'BNBUP', 'SXPUP', 'YFIUP', 'XLMUP',
+  'UNIUP', 'FILUP', '1INCHUP', 'LINKUP', 'LTCUP', 'ETHUP', 'SUSHIUP', 'EOSUP', 'XRPUP', 'TRXUP', 'BCHUP',
+  'RENBTC', 'B' ]
+
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least MAX_COINS * QUANTITY)
-  MAX_COINS: 3
+  MAX_COINS: 4
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 1
 
   # Number of times to check for TP/SL during each TIME_DIFFERENCE (minimum: 1).
   # Don't spam the Binance API, you will be banned (max 1200 requests per minute per IP).
-  RECHECK_INTERVAL: 100
+  RECHECK_INTERVAL: 6
 
   # the difference in % between the first and second checks for the price.
-  CHANGE_IN_PRICE: .4
+  CHANGE_IN_PRICE: 100
 
   # define in % when to sell a coin that's not making a profit.
-  STOP_LOSS: .3
+  STOP_LOSS: 10
 
   # define in % when to take profit on a profitable coin.
-  TAKE_PROFIT: .8
+  TAKE_PROFIT: .58
 
   # Use custom tickers.txt list for filtering pairs.
   CUSTOM_LIST: True
-   
+
   # Name of custom tickers list
-  TICKERS_LIST: 'tickers.txt'
-   
+#  TICKERS_LIST: 'tickers.txt'
+  TICKERS_LIST: 'tickers_all_USDT.txt'
+
   # whether to use trailing stop loss or not; default is True
   USE_TRAILING_STOP_LOSS: True
 
   # when hit TAKE_PROFIT, move STOP_LOSS to TRAILING_STOP_LOSS percentage points below TAKE_PROFIT hence locking in profit
   # when hit TAKE_PROFIT, move TAKE_PROFIT up by TRAILING_TAKE_PROFIT percentage points
-  TRAILING_STOP_LOSS: .4
-  TRAILING_TAKE_PROFIT: .1
-  
+  TRAILING_STOP_LOSS: .06
+  TRAILING_TAKE_PROFIT: .01
+
   # Trading fee in % per trade.
   # If using 0.75% (using BNB for fees) you must have BNB in your account to cover trading fees.
   # If using BNB for fees, it MUST be enabled in your Binance 'Dashboard' page (checkbox).
   TRADING_FEE: .075
 
-  # Tickers list generator
-  # If True - generates actual top of market cap coins according to PAIR_WITH token
-  GENERATE_NEW_TICKERS_LIST: True
-  # If GENERATE_NEW_TICKERS_LIST=True, this value is the size of top
-  NEW_TICKERS_LIST_COUNT: 120
-
   SIGNALLING_MODULES:
     - pausebotmod
-    - signalsamplemod
-    
-  
+    # - signalsamplemod
+    - VolScan

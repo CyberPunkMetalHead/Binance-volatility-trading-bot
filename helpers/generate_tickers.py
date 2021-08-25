@@ -31,24 +31,29 @@
     "etf": false
 }
 """
+import re
 from typing import List
 
 import requests
+
+from VolScan import txcolors
 
 
 class BinanceMarketCapFetcher:
     PRODUCTS_URL = 'https://www.binance.com/exchange-api/v2/public/asset-service/product/get-products'
 
-    def __init__(self, n_top=100, base_coin='usdt', output_filename='tickers_new.txt'):
+    def __init__(self, n_top=100, base_coin='usdt', output_filename='tickers_new.txt', exclude_list=None):
         self.n_top = n_top
         self.base_coin = base_coin
         self.output_filename = output_filename
+        self.exclude_list = exclude_list or []
 
     def execute(self):
         list_of_top_n = self._fetch_market_cap_top_for_coin(self.n_top, self.base_coin)
         with open(self.output_filename, 'w+') as f:
             for p in list_of_top_n:
-                f.write(f"{p['b']}\n")
+                if p['b'] not in self.exclude_list:
+                    f.write(f"{p['b']}\n")
 
     @classmethod
     def _fetch_market_cap_top_for_coin(cls, n_top: int, base_coin: str) -> List[dict]:
@@ -82,3 +87,19 @@ class BinanceMarketCapFetcher:
     @classmethod
     def _filter_products_by_base_coin(cls, base_coin: str, products):
         return [p for p in products if p['q'].lower() == base_coin.lower()]
+
+
+SELL_PROFIT = '\033[32m'
+
+
+def create_ticker_list(path, base_coin, exclude_list):
+    url = f'http://edgesforledges.com/watchlists/download/binance/fiat/usdt/all'
+    response = requests.get(url)
+
+    with open(path, 'w') as f:
+        for line in response.text.splitlines():
+            if line.endswith(base_coin):
+                currency = re.sub(r'BINANCE:(.*)' + base_coin, r'\1', line)
+                if currency not in exclude_list:
+                    f.writelines(currency + '\n')
+    print(f'{SELL_PROFIT}>> Tickers CREATED from {url} tickers!!! {path} <<')
