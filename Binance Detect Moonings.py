@@ -29,6 +29,8 @@ import glob
 # Needed for colorful console output Install with: python3 -m pip install colorama (Mac/Linux) or pip install colorama (PC)
 from colorama import init
 
+from helpers.generate_tickers import create_ticker_list
+
 init()
 
 # needed for the binance API / websockets / Exception handling
@@ -573,12 +575,12 @@ if __name__ == '__main__':
     api_ready, msg = test_api_key(client, BinanceAPIException)
     if api_ready is not True:
         exit(f'{txcolors.SELL_LOSS}{msg}{txcolors.DEFAULT}')
+    #
+    # if GENERATE_NEW_TICKERS_LIST:
+    #     from helpers.generate_tickers import BinanceMarketCapFetcher
+    #     BinanceMarketCapFetcher(NEW_TICKERS_LIST_COUNT, PAIR_WITH, TICKERS_LIST, EX_PAIRS).execute()
 
-    if GENERATE_NEW_TICKERS_LIST:
-        from helpers.generate_tickers import BinanceMarketCapFetcher
-        BinanceMarketCapFetcher(NEW_TICKERS_LIST_COUNT, PAIR_WITH, TICKERS_LIST, EX_PAIRS).execute()
-
-    # create_ticker_list()
+    create_ticker_list(TICKERS_LIST, PAIR_WITH, EX_PAIRS)
 
     # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
     if CUSTOM_LIST:
