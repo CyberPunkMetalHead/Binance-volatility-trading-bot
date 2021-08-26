@@ -56,7 +56,7 @@ trading_options:
   CHANGE_IN_PRICE: 100
 
   # define in % when to sell a coin that's not making a profit.
-  STOP_LOSS: 10
+  STOP_LOSS: 4
 
   # define in % when to take profit on a profitable coin.
   TAKE_PROFIT: .58
@@ -73,7 +73,7 @@ trading_options:
 
   # when hit TAKE_PROFIT, move STOP_LOSS to TRAILING_STOP_LOSS percentage points below TAKE_PROFIT hence locking in profit
   # when hit TAKE_PROFIT, move TAKE_PROFIT up by TRAILING_TAKE_PROFIT percentage points
-  TRAILING_STOP_LOSS: .06
+  TRAILING_STOP_LOSS: .1
   TRAILING_TAKE_PROFIT: .01
 
   # Telegram bot integration token
