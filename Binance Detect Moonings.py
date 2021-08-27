@@ -145,11 +145,12 @@ def wait_for_price():
 
     pause_bot()
 
-    if historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'] > datetime.now() - timedelta(
+    last_time = list(historical_prices[hsp_head].values())[0]['time']
+    if last_time > datetime.now() - timedelta(
             minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)):
         # sleep for exactly the amount of time required
         time.sleep((timedelta(minutes=float(TIME_DIFFERENCE / RECHECK_INTERVAL)) - (
-                datetime.now() - historical_prices[hsp_head]['BNB' + PAIR_WITH]['time'])).total_seconds())
+                datetime.now() - last_time)).total_seconds())
 
     print(f'Working...Session profit:{session_profit:.2f}% Est:${(QUANTITY * session_profit) / 100:.2f}')
 
@@ -554,6 +555,7 @@ if __name__ == '__main__':
     TRAILING_TAKE_PROFIT = parsed_config['trading_options']['TRAILING_TAKE_PROFIT']
     TRADING_FEE = parsed_config['trading_options']['TRADING_FEE']
     SIGNALLING_MODULES = parsed_config['trading_options']['SIGNALLING_MODULES']
+    TICKERS_SOURCE_URL = parsed_config['trading_options']['TICKERS_SOURCE_URL']
     if DEBUG_SETTING or args.debug:
         DEBUG = True
 
@@ -580,7 +582,7 @@ if __name__ == '__main__':
     #     from helpers.generate_tickers import BinanceMarketCapFetcher
     #     BinanceMarketCapFetcher(NEW_TICKERS_LIST_COUNT, PAIR_WITH, TICKERS_LIST, EX_PAIRS).execute()
 
-    create_ticker_list(TICKERS_LIST, PAIR_WITH, EX_PAIRS)
+    create_ticker_list(TICKERS_LIST, PAIR_WITH, EX_PAIRS, TICKERS_SOURCE_URL)
 
     # Use CUSTOM_LIST symbols if CUSTOM_LIST is set to True
     if CUSTOM_LIST:

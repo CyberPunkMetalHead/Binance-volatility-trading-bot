@@ -92,8 +92,7 @@ class BinanceMarketCapFetcher:
 SELL_PROFIT = '\033[32m'
 
 
-def create_ticker_list(path, base_coin, exclude_list):
-    url = f'http://edgesforledges.com/watchlists/download/binance/fiat/usdt/all'
+def create_ticker_list(path, base_coin, exclude_list, url):
     response = requests.get(url)
 
     with open(path, 'w') as f:
