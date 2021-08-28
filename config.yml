@@ -15,12 +15,12 @@ script_options:
 trading_options:
 
   # select your base currency to use for trading (trade for example USDT pairs)
-  PAIR_WITH: BNB
+  PAIR_WITH: USDT
 
   # Total amount per trade (your base currency balance must be at least MAX_COINS * QUANTITY)
   # Binance uses a minimum of 10 USDT per trade, add a bit extra to enable selling if the price drops.
   # Recommended: no less than 12 USDT. Suggested: 15 or more.
-  QUANTITY: 0.06
+  QUANTITY: 15
 
   # List of trading pairs to exclude
   # by default we're excluding the most popular fiat pairs
@@ -43,7 +43,7 @@ trading_options:
   'RENBTC', 'B' ]
 
   # Maximum number of trade 'slots' at any time (your USDT balance must be at least MAX_COINS * QUANTITY)
-  MAX_COINS: 3
+  MAX_COINS: 5
 
   # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
   TIME_DIFFERENCE: 1
@@ -66,8 +66,8 @@ trading_options:
 
   # Name of custom tickers list
 #  TICKERS_LIST: 'tickers.txt'
-  TICKERS_SOURCE_URL: 'http://edgesforledges.com/watchlists/download/binance/bnb/bnb/all'
-  TICKERS_LIST: 'tickers_all_BNB.txt'
+  TICKERS_SOURCE_URL: 'http://edgesforledges.com/watchlists/download/binance/fiat/usdt/all'
+  TICKERS_LIST: 'tickers_all_USDT.txt'
 
   # whether to use trailing stop loss or not; default is True
   USE_TRAILING_STOP_LOSS: True
