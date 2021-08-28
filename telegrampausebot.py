@@ -51,7 +51,7 @@ def get_logs(update, context):
     start_time = datetime.datetime.now()
     while True:
         line = f.stdout.readline()
-        update.message.reply_text(line)
+        update.message.reply_text(line.decode("utf-8"))
         if datetime.datetime.now() - start_time > datetime.timedelta(seconds=10):
             break
     f.kill()
