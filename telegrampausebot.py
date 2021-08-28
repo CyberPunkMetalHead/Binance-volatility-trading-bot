@@ -14,11 +14,11 @@ Basic Echobot example, repeats messages.
 Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
-
+import datetime
 import logging
 import os
 import time
-
+import subprocess
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 from helpers.parameters import parse_args, load_config
@@ -46,9 +46,15 @@ def start(update, context):
 
 def get_logs(update, context):
     """Send a message when the command /start is issued."""
-    # with open('signals/logs.txt', 'r') as f:
-    #     f.write('yes')
-    update.message.reply_text('Logs will be here')
+    f = subprocess.Popen(['tail', '-F', 'log.txt'],
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    start_time = datetime.datetime.now()
+    while True:
+        line = f.stdout.readline()
+        update.message.reply_text(line)
+        if datetime.datetime.now() - start_time > datetime.timedelta(seconds=10):
+            break
+    f.kill()
 
 
 def pause_bot(update, context):
