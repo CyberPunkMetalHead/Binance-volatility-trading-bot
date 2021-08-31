@@ -418,8 +418,9 @@ def sell_coins():
 
         # check that the price is below the stop loss or above take profit
         # (if trailing stop loss not used) and sell if this is the case
-        timeout_reached = datetime.now() - coins_bought[coin]['timestamp'] > timedelta(minutes=HOLD_TIMEOUT_MIN)
-        if LastPrice < SL or LastPrice > TP and not USE_TRAILING_STOP_LOSS:
+        time_bought = datetime.fromtimestamp(coins_bought[coin]['timestamp'] / 1e3)
+        timeout_reached = (datetime.now() - time_bought) > timedelta(minutes=HOLD_TIMEOUT_MIN)
+        if LastPrice < SL or timeout_reached or LastPrice > TP and not USE_TRAILING_STOP_LOSS:
             print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}TP or SL reached,"
                   f" selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} :"
                   f" {PriceChange - (TRADING_FEE * 2):.2f}% Est:"
