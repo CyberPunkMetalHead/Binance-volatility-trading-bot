@@ -421,7 +421,9 @@ def sell_coins():
         time_bought = datetime.fromtimestamp(coins_bought[coin]['timestamp'] / 1e3)
         timeout_reached = (datetime.now() - time_bought) > timedelta(minutes=HOLD_TIMEOUT_MIN)
         if LastPrice < SL or timeout_reached or LastPrice > TP and not USE_TRAILING_STOP_LOSS:
-            print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}TP or SL reached,"
+            if timeout_reached: event = 'HOLD_TIMEOUT_MIN reached,'
+            else: event = 'TP or SL reached,'
+            print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{event}"
                   f" selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} :"
                   f" {PriceChange - (TRADING_FEE * 2):.2f}% Est:"
                   f"${(QUANTITY * (PriceChange - (TRADING_FEE * 2))) / 100:.2f}{txcolors.DEFAULT}")
