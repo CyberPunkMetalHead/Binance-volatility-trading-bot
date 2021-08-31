@@ -401,6 +401,12 @@ def sell_coins():
         SL = float(coins_bought[coin]['bought_at']) + (
                 float(coins_bought[coin]['bought_at']) * coins_bought[coin]['stop_loss']) / 100
 
+        HOLD_TIMEOUT_SL = float(coins_bought[coin]['bought_at']) + (
+                float(coins_bought[coin]['bought_at']) * (HOLD_TIMEOUT_THRESHOLD * -1)) / 100
+
+        HOLD_TIMEOUT_TP = float(coins_bought[coin]['bought_at']) + (
+                float(coins_bought[coin]['bought_at']) * HOLD_TIMEOUT_THRESHOLD) / 100
+
         LastPrice = float(last_price[coin]['price'])
         BuyPrice = float(coins_bought[coin]['bought_at'])
         PriceChange = float((LastPrice - BuyPrice) / BuyPrice * 100)
@@ -420,13 +426,22 @@ def sell_coins():
         # (if trailing stop loss not used) and sell if this is the case
         time_bought = datetime.fromtimestamp(coins_bought[coin]['timestamp'] / 1e3)
         timeout_reached = (datetime.now() - time_bought) > timedelta(minutes=HOLD_TIMEOUT_MIN)
-        if LastPrice < SL or timeout_reached or LastPrice > TP and not USE_TRAILING_STOP_LOSS:
-            if timeout_reached: event = 'HOLD_TIMEOUT_MIN reached,'
-            else: event = 'TP or SL reached,'
-            print(f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}{event}"
-                  f" selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} :"
-                  f" {PriceChange - (TRADING_FEE * 2):.2f}% Est:"
-                  f"${(QUANTITY * (PriceChange - (TRADING_FEE * 2))) / 100:.2f}{txcolors.DEFAULT}")
+        sell_coin = False
+        message = None
+        if timeout_reached and (LastPrice > HOLD_TIMEOUT_TP or LastPrice < HOLD_TIMEOUT_SL):
+            sell_coin = True
+            message = f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}HOLD_TIMEOUT REACHED" \
+                      f" selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} :" \
+                      f" {PriceChange - (TRADING_FEE * 2):.2f}% Est:" \
+                      f"${(QUANTITY * (PriceChange - (TRADING_FEE * 2))) / 100:.2f}{txcolors.DEFAULT}"
+        if LastPrice < SL or LastPrice > TP and not USE_TRAILING_STOP_LOSS:
+            sell_coin = True
+            message = f"{txcolors.SELL_PROFIT if PriceChange >= 0. else txcolors.SELL_LOSS}TP or SL reached," \
+                      f" selling {coins_bought[coin]['volume']} {coin} - {BuyPrice} - {LastPrice} :" \
+                      f" {PriceChange - (TRADING_FEE * 2):.2f}% Est:" \
+                      f"${(QUANTITY * (PriceChange - (TRADING_FEE * 2))) / 100:.2f}{txcolors.DEFAULT}"
+        if sell_coin:
+            print(message)
 
             # try to create a real order
             try:
@@ -561,6 +576,7 @@ if __name__ == '__main__':
     SIGNALLING_MODULES = parsed_config['trading_options']['SIGNALLING_MODULES']
     TICKERS_SOURCE_URL = parsed_config['trading_options']['TICKERS_SOURCE_URL']
     HOLD_TIMEOUT_MIN = parsed_config['trading_options']['HOLD_TIMEOUT_MIN']
+    HOLD_TIMEOUT_THRESHOLD = parsed_config['trading_options']['HOLD_TIMEOUT_THRESHOLD']
     if DEBUG_SETTING or args.debug:
         DEBUG = True
 

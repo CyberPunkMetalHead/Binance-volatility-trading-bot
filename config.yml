@@ -34,6 +34,7 @@ trading_options:
 
   # When to sell coin if TP or SL is not reached
   HOLD_TIMEOUT_MIN: 15
+  HOLD_TIMEOUT_THRESHOLD: 0.5
   # EX_PAIRS is a list of fiat currencies and margin symbols that I am excluding.
   # Anything added here will be excluded from coin withdrawal and will not be sold.
   EX_PAIRS: ['EUR', 'USD', 'GBP', 'BUSD', 'USDT', 'AUD', 'BRL', 'RUB', 'TRY', 'USDC', 'PAX', 'BIDR', 'DAI', 'IDRT',
