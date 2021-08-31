@@ -402,7 +402,7 @@ def sell_coins():
                 float(coins_bought[coin]['bought_at']) * coins_bought[coin]['stop_loss']) / 100
 
         HOLD_TIMEOUT_SL = float(coins_bought[coin]['bought_at']) + (
-                float(coins_bought[coin]['bought_at']) * (HOLD_TIMEOUT_THRESHOLD * -1)) / 100
+                float(coins_bought[coin]['bought_at']) * (HOLD_TIMEOUT_THRESHOLD * -2)) / 100
 
         HOLD_TIMEOUT_TP = float(coins_bought[coin]['bought_at']) + (
                 float(coins_bought[coin]['bought_at']) * HOLD_TIMEOUT_THRESHOLD) / 100
