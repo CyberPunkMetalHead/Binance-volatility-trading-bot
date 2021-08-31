@@ -81,7 +81,7 @@ trading_options:
   TRAILING_TAKE_PROFIT: .1
 
   # Telegram bot integration token
-  TELEGRAM_TOKEN: "1922840777:AAHUfEdaV8paWatAPI34ZOdKBixvkoxa1yk"
+  TELEGRAM_TOKEN: "TOKEN"
 
   # Trading fee in % per trade.
   # If using 0.75% (using BNB for fees) you must have BNB in your account to cover trading fees.
