@@ -85,7 +85,7 @@ TICKERS_LIST = parsed_config['trading_options']['TICKERS_LIST']
 # NUMBER_COINS_IN_LIST - Limit the number of coins that can be added to the dynamic list of volatile coins. For example,
 # if NUMBER_COINS_IN_LIST = 20,
 # then each period only 20 sorted coins will be added to the list (Above the lowest values with a minus sign).
-NUMBER_COINS_IN_LIST = 20
+NUMBER_COINS_IN_LIST = 10
 
 # CV_INDEX - Coefficient of Variation. Only those coins with a COV greater than the specified value will be displayed.
 CoV_INDEX = 0.0

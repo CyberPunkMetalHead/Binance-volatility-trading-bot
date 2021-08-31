@@ -20,7 +20,7 @@ trading_options:
   # Total amount per trade (your base currency balance must be at least MAX_COINS * QUANTITY)
   # Binance uses a minimum of 10 USDT per trade, add a bit extra to enable selling if the price drops.
   # Recommended: no less than 12 USDT. Suggested: 15 or more.
-  QUANTITY: 15
+  QUANTITY: 14
 
   # List of trading pairs to exclude
   # by default we're excluding the most popular fiat pairs
@@ -59,10 +59,10 @@ trading_options:
   CHANGE_IN_PRICE: 100
 
   # define in % when to sell a coin that's not making a profit.
-  STOP_LOSS: 4
+  STOP_LOSS: 10
 
   # define in % when to take profit on a profitable coin.
-  TAKE_PROFIT: .58
+  TAKE_PROFIT: .75
 
   # Use custom tickers.txt list for filtering pairs.
   CUSTOM_LIST: True
@@ -77,8 +77,8 @@ trading_options:
 
   # when hit TAKE_PROFIT, move STOP_LOSS to TRAILING_STOP_LOSS percentage points below TAKE_PROFIT hence locking in profit
   # when hit TAKE_PROFIT, move TAKE_PROFIT up by TRAILING_TAKE_PROFIT percentage points
-  TRAILING_STOP_LOSS: .1
-  TRAILING_TAKE_PROFIT: .01
+  TRAILING_STOP_LOSS: .2
+  TRAILING_TAKE_PROFIT: .1
 
   # Telegram bot integration token
   TELEGRAM_TOKEN: "TOKEN"
