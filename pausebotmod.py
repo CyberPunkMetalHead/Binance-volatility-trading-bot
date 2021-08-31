@@ -3,7 +3,7 @@ import os
 import time
 import threading
 
-INTERVAL = Interval.INTERVAL_5_MINUTE #Timeframe for analysis
+INTERVAL = Interval.INTERVAL_5_MINUTES #Timeframe for analysis
 
 EXCHANGE = 'BINANCE'
 SCREENER = 'CRYPTO'
