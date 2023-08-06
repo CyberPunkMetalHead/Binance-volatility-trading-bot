@@ -14,6 +14,8 @@ The bot will listen to changes in price accross all coins on Binance. By default
 - The bot will buy 100 USDT of the most volatile coins on Binance
 - The bot will sell at 6% profit or 3% stop loss
 
+**UPDATE: The Binance Volatility Bot is now Available with a UI and all the bells and whistles on [Algorithmic Cryptocurrency Trading Platform](https://aesircrypto.com) Aesir**
+
 
 You can follow the [Binance volatility bot guide](https://www.cryptomaton.org/2021/05/08/how-to-code-a-binance-trading-bot-that-detects-the-most-volatile-coins-on-binance/) for a step-by-step walkthrough of the bot development.
 
