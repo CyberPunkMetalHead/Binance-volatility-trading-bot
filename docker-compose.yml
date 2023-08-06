@@ -1,0 +1,8 @@
+version: "3.9"
+
+services:
+    binance_bot:
+        build: ./
+        volumes:
+            - "./:/usr/src/app"
+        command: python3 Binance\ Detect\ Moonings.py
