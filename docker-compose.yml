@@ -1,0 +1,121 @@
+version: "3.8"
+
+services:
+  trading-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: binance-trading-bot
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      # Binance API (required for live trading)
+      - BINANCE_API_KEY=${BINANCE_API_KEY}
+      - BINANCE_API_SECRET=${BINANCE_API_SECRET}
+
+      # Telegram Notifications
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - TELEGRAM_ENABLED=${TELEGRAM_ENABLED:-true}
+
+      # Trading Configuration
+      - TRADING_SYMBOL=${TRADING_SYMBOL:-BTCUSDT}
+      - TRADING_INTERVAL=${TRADING_INTERVAL:-1h}
+      - TRADE_AMOUNT_USDT=${TRADE_AMOUNT_USDT:-100}
+
+      # Strategy Parameters (Optuna optimized)
+      - FAST_PERIOD=${FAST_PERIOD:-76}
+      - SLOW_PERIOD=${SLOW_PERIOD:-209}
+      - FILTER_PERIOD=${FILTER_PERIOD:-23}
+
+      # Risk Management
+      - TRAILING_STOP_PCT=${TRAILING_STOP_PCT:-0.0389}
+      - STOP_LOSS_PCT=${STOP_LOSS_PCT:-0.0476}
+      - TAKE_PROFIT_PCT=${TAKE_PROFIT_PCT:-0}
+
+      # Mode
+      - PAPER_TRADING=${PAPER_TRADING:-true}
+      - INITIAL_CAPITAL=${INITIAL_CAPITAL:-10000}
+
+      # Database
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-trading_bot}
+
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+
+    volumes:
+      - ./data/logs:/app/logs
+      - ./data/state:/app/data
+
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: trading-bot-postgres
+    restart: unless-stopped
+
+    environment:
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${DB_NAME:-trading_bot}
+
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    ports:
+      - "5432:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-trading_bot}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 256M
+
+  # pgAdmin for database management (optional, for development)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: trading-bot-pgadmin
+    restart: unless-stopped
+    profiles:
+      - dev
+
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@admin.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
+      - PGADMIN_CONFIG_SERVER_MODE=False
+
+    ports:
+      - "5050:80"
+
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+    depends_on:
+      - postgres
+
+volumes:
+  postgres-data:
+  pgadmin-data:

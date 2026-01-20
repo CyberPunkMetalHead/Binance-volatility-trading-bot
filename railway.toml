@@ -1,0 +1,10 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "python -m simple_bot.live_bot"
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "always"
+restartPolicyMaxRetries = 5

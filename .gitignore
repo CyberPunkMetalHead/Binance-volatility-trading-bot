@@ -1,13 +1,22 @@
 creds.yml
 trades.txt
+.env
 
 __*__
 
-# Dont upload json files
+# Dont upload json files (except railway.json)
 *.json
+!railway.json
 
 # Virtual environment
 .venv
 
 # IDE settings
 .vscode
+
+# Generated files from simple_bot
+reports/
+data/
+plots/
+*.log
+bot_state_*.json

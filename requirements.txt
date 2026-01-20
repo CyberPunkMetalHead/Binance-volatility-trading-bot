@@ -1,4 +1,28 @@
-python-binance==0.7.9
-colorama==0.4.4
-PyYAML==5.4.1
-tradingview-ta==3.2.3
+# Binance API
+python-binance>=1.0.19
+
+# Data processing
+pandas>=1.5.0
+numpy>=1.24.0
+
+# HTTP requests
+requests>=2.28.0
+aiohttp>=3.8.0
+
+# Database
+asyncpg>=0.27.0
+
+# Visualization
+matplotlib>=3.6.0
+
+# Configuration
+PyYAML>=6.0
+
+# Optimization
+optuna>=3.0.0
+
+# Utilities
+colorama>=0.4.6
+
+# Optional: TradingView signals
+tradingview-ta>=3.3.0

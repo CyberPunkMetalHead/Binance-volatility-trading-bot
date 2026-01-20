@@ -1,0 +1,73 @@
+# Simple Trading Bot Configuration
+
+# Trading mode: 'live' or 'paper'
+mode: paper
+
+# Trading pair (symbol)
+symbol: BTCUSDT
+
+# Candle interval: 1m, 5m, 15m, 30m, 1h, 4h, 1d
+interval: 1h
+
+# Amount in USDT per trade
+quantity_usdt: 100
+
+# Stop loss percentage (0.05 = 5%)
+stop_loss_pct: 0.05
+
+# Take profit percentage (0.10 = 10%)
+take_profit_pct: 0.10
+
+# Strategy to use
+# Available strategies:
+#   - sma_20_50: SMA Crossover (20/50)
+#   - sma_10_30: SMA Crossover (10/30)
+#   - ema_12_26: EMA Crossover (12/26)
+#   - ema_9_21: EMA Crossover (9/21)
+#   - rsi_14: RSI (14) Oversold/Overbought
+#   - rsi_7: RSI (7) Oversold/Overbought
+#   - macd: MACD Crossover
+#   - bollinger: Bollinger Bands Mean Reversion
+#   - stochastic: Stochastic Oscillator
+#   - triple_ma: Triple Moving Average
+#   - rsi_macd: RSI + MACD Combined
+#   - supertrend: Supertrend
+#   - momentum: Momentum
+#   - golden_cross: Golden Cross / Death Cross
+strategy: sma_20_50
+
+# Initial capital for paper trading
+initial_capital: 10000
+
+# Binance API credentials (for live trading only)
+# WARNING: Never commit real API keys to version control!
+api_key: ""
+api_secret: ""
+
+# Backtesting settings
+backtest:
+  # Number of years of historical data
+  years: 4
+
+  # Trading commission (0.001 = 0.1%)
+  commission: 0.001
+
+  # Slippage (0.0005 = 0.05%)
+  slippage: 0.0005
+
+  # Symbols to backtest
+  symbols:
+    - BTCUSDT
+    - ETHUSDT
+    - BNBUSDT
+
+  # Strategies to compare
+  strategies:
+    - sma_20_50
+    - ema_12_26
+    - rsi_14
+    - macd
+    - bollinger
+    - triple_ma
+    - rsi_macd
+    - supertrend
